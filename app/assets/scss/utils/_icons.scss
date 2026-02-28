@@ -1,0 +1,302 @@
+@use "../abstracts/colors" as *;
+
+i.icon {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  background-color: $surface-400;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  transition: 0.4s;
+
+  &.up {
+    transform: rotate(-180deg);
+  }
+
+  &.down {
+    transform: rotate(180deg);
+  }
+
+  &.left {
+    transform: rotate(-90deg);
+  }
+
+  &.right {
+    transform: rotate(90deg);
+  }
+
+	  &.up-right {
+    transform: rotate(-45deg);
+  }
+}
+
+//Sizes
+.size-52 {
+  mask-size: 52px 52px;
+  width: 52px !important;
+  min-width: 52px;
+  height: 52px !important;
+}
+.size-44 {
+    mask-size: 44px 44px;
+    width: 44px!important;
+    min-width: 44px;
+    height: 44px!important;
+}
+.size-42 {
+  mask-size: 42px 42px;
+  width: 42px !important;
+  min-width: 42px;
+  height: 42px !important;
+}
+.size-36 {
+  mask-size: 36px 36px;
+  width: 36px !important;
+  min-width: 36px;
+  height: 36px !important;
+}
+.size-32 {
+  mask-size: 32px 32px;
+  width: 32px !important;
+  min-width: 32px;
+  height: 32px !important;
+}
+.size-30 {
+  mask-size: 30px 30px;
+  width: 30px !important;
+  min-width: 30px;
+  height: 30px !important;
+}
+.size-24 {
+  mask-size: 24px 24px;
+  width: 24px !important;
+  min-width: 24px;
+  height: 24px !important;
+}
+.size-20 {
+  mask-size: 20px 20px;
+  width: 20px !important;
+  min-width: 20px;
+  height: 20px !important;
+}
+.size-17-5{
+	mask-size: 17.5px 17.5px;
+  width: 17.5px !important;
+  min-width: 17.5px;
+  height: 17.5px !important;
+}
+.size-16 {
+  mask-size: 16px 16px;
+  width: 16px !important;
+  min-width: 16px;
+  height: 16px !important;
+}
+.size-14 {
+  mask-size: 14px 14px;
+  width: 14px !important;
+  min-width: 14px;
+  height: 14px !important;
+}
+.size-12 {
+  mask-size: 12px 12px;
+  width: 12px !important;
+  min-width: 12px;
+  height: 12px !important;
+}
+
+// Icons
+.chevron{
+						    @extend i, .icon;
+    -webkit-mask-image: url("@/assets/icons/chevron.svg");
+    mask-image: url("@/assets/icons/chevron.svg");
+}
+.checkmark {
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/checkmark.svg");
+  mask-image: url("@/assets/icons/checkmark.svg");
+}
+.book-check {
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/book-check.svg");
+  mask-image: url("@/assets/icons/book-check.svg");
+}
+.hat-mantia {
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/hat-mantia.svg");
+  mask-image: url("@/assets/icons/hat-mantia.svg");
+}
+.monitor-i {
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/monitor-i.svg");
+  mask-image: url("@/assets/icons/monitor-i.svg");
+}
+.paper-check{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/paper-check.svg");
+  mask-image: url("@/assets/icons/paper-check.svg");
+}
+.percentage-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/percentage-i.svg");
+  mask-image: url("@/assets/icons/percentage-i.svg");
+}
+.university-build{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/university-build.svg");
+  mask-image: url("@/assets/icons/university-build.svg");
+}
+.hamburger{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/hamburger.svg");
+  mask-image: url("@/assets/icons/hamburger.svg");
+}
+.close{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/close.svg");
+  mask-image: url("@/assets/icons/close.svg");
+}
+.i-circle{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/i-circle.svg");
+  mask-image: url("@/assets/icons/i-circle.svg");
+}
+.checked{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/checked.svg");
+  mask-image: url("@/assets/icons/checked.svg");
+}
+.plus-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/plus.svg");
+  mask-image: url("@/assets/icons/plus.svg");
+}
+.pdf-file{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/pdf-file.svg");
+  mask-image: url("@/assets/icons/pdf-file.svg");
+}
+.word-file{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/word-file.svg");
+  mask-image: url("@/assets/icons/word-file.svg");
+}
+.eye-open{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/eye-open.svg");
+  mask-image: url("@/assets/icons/eye-open.svg");
+}
+.eye{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/eye.svg");
+  mask-image: url("@/assets/icons/eye.svg");
+}
+.phone-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/phone.svg");
+  mask-image: url("@/assets/icons/phone.svg");
+}
+.location-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/location.svg");
+  mask-image: url("@/assets/icons/location.svg");
+}
+.email-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/email.svg");
+  mask-image: url("@/assets/icons/email.svg");
+}
+.star-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/star-i.svg");
+  mask-image: url("@/assets/icons/star-i.svg");
+}
+.pdf-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/pdf-i.svg");
+  mask-image: url("@/assets/icons/pdf-i.svg");
+}
+.png-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/png-i.svg");
+  mask-image: url("@/assets/icons/png-i.svg");
+}
+.user-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/user-i.svg");
+  mask-image: url("@/assets/icons/user-i.svg");
+}
+.logout-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/logout-i.svg");
+  mask-image: url("@/assets/icons/logout-i.svg");
+}
+.list-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/list-i.svg");
+  mask-image: url("@/assets/icons/list-i.svg");
+}
+.error-notify{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/error-notify.svg");
+  mask-image: url("@/assets/icons/error-notify.svg");
+}
+.checkmark{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/checkmark.svg");
+  mask-image: url("@/assets/icons/checkmark.svg");
+}
+.lupa-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/lupa-i.svg");
+  mask-image: url("@/assets/icons/lupa-i.svg");
+}
+.trash-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/trash-i.svg");
+  mask-image: url("@/assets/icons/trash-i.svg");
+}
+.share-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/share-i.svg");
+  mask-image: url("@/assets/icons/share-i.svg");
+}
+.circle-play{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/circle-play.svg");
+  mask-image: url("@/assets/icons/circle-play.svg");
+}
+.statistics-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/statistics-i.svg");
+  mask-image: url("@/assets/icons/statistics-i.svg");
+}
+.users-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/users-i.svg");
+  mask-image: url("@/assets/icons/users-i.svg");
+}
+.plus-circle{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/plus-circle.svg");
+  mask-image: url("@/assets/icons/plus-circle.svg");
+}
+.import-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/import-i.svg");
+  mask-image: url("@/assets/icons/import-i.svg");
+}
+.methodology-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/methodology-i.svg");
+  mask-image: url("@/assets/icons/methodology-i.svg");
+}
+.lampa-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/lampa-i.svg");
+  mask-image: url("@/assets/icons/lampa-i.svg");
+}
+.neighbourhood-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/neighbourhood-i.svg");
+  mask-image: url("@/assets/icons/neighbourhood-i.svg");
+}

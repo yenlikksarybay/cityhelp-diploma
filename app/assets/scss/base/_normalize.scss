@@ -1,0 +1,85 @@
+@use "../abstracts/colors" as *;
+@use "../utils/fonts" as *;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-style: normal;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  background: $surface-75;
+  min-height: 100%;
+  overflow-x: hidden;
+  font-family: "SF Pro Rounded", sans-serif;
+  color: $black;
+}
+
+input,
+textarea,
+select {
+  background: none;
+  border: none;
+  outline: none;
+	font-family: inherit;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  margin-bottom: 0rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+img {
+  max-width: 100%;
+}
+
+ol,
+ul {
+  margin-top: 0;
+  margin-bottom: 0rem;
+  padding-left: 0rem;
+}
+
+li {
+  list-style-type: none;
+}
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+  transition: 0.2s;
+	color: inherit;
+}
+
+button {
+  cursor: pointer;
+	background-color: transparent;
+	border: none;
+	outline: none;
+  font-family: inherit;
+}

@@ -1,0 +1,77 @@
+@use "../abstracts/colors" as *;
+@use "../abstracts/variables" as *;
+
+// Button
+.primary-btn{
+	background-color: $secondary-accent;
+	color: $white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border: 2px solid transparent;
+	font-weight: 500;
+	transition: .4s ease-in-out;
+	white-space: nowrap;
+	width: fit-content;
+
+
+	& .icon{
+		background-color: $white;
+	}
+	&:hover{
+		background-color: transparent;
+		border: 2px solid $secondary-accent;
+		color: $secondary-accent;
+		font-weight: 500;
+	}
+}
+
+.secondary-btn{
+	background-color: transparent;
+	display: flex;
+	width: fit-content;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid $secondary-accent;
+	font-weight: 500;
+	transition: .4s ease-in-out;
+	white-space: nowrap;
+		color: $secondary-accent;
+
+
+	& .icon{
+		background-color: $white;
+	}
+	&:hover{
+		background-color: transparent;
+		border: 1px solid $secondary-accent;
+		background-color: $secondary-accent;
+		color: $white;
+		font-weight: 500;
+	}
+}
+
+.tertiary-btn{
+	background-color: $tertiary-accent;
+	display: flex;
+	width: fit-content;
+	justify-content: center;
+	align-items: center;
+	border: 1px solid $secondary-accent;
+	font-weight: 500;
+	transition: .4s ease-in-out;
+	white-space: nowrap;
+	color: $surface-600;
+
+
+	& .icon{
+		background-color: $white;
+	}
+	// &:hover{
+	// 	background-color: transparent;
+	// 	border: 1px solid $secondary-accent;
+	// 	background-color: $secondary-accent;
+	// 	color: $white;
+	// 	font-weight: 500;
+	// }
+}
