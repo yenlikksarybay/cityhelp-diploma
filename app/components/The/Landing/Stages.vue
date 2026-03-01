@@ -19,10 +19,12 @@
               заявка будет создана за минуту.
             </p>
           </div>
-          <div
+          <img
             class="stages__media stages__media--one"
+            src="/assets/images/landing/Snap_1.webp"
+            alt="Span"
             aria-hidden="true"
-          ></div>
+          />
         </div>
 
         <div
@@ -30,10 +32,12 @@
           data-aos="fade-up"
           data-aos-delay="150"
         >
-          <div
+          <img
             class="stages__media stages__media--two"
+            src="/assets/images/landing/Send_2.webp"
+            alt="Span"
             aria-hidden="true"
-          ></div>
+          />
           <div class="stages__content">
             <div class="stages__badge">2</div>
             <h3 class="stages__item-title">Send — Отправить</h3>
@@ -53,10 +57,12 @@
               и приступили к решению.
             </p>
           </div>
-          <div
+          <img
             class="stages__media stages__media--three"
+            src="/assets/images/landing/Solve_3.webp"
+            alt="Span"
             aria-hidden="true"
-          ></div>
+          />
         </div>
       </div>
     </div>
