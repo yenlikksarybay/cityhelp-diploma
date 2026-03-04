@@ -1,6 +1,6 @@
 <template>
-  <main class="index">
-    <div class="index__wrapper">
+  <main class="landing">
+    <div class="landing__wrapper">
       <TheLandingIntroduce />
       <TheLandingRepresent />
       <TheLandingGoals />
@@ -9,13 +9,18 @@
       <TheLandingHelpUs />
     </div>
 
-    <div class="index__floating" :class="{ 'is-visible': shouldShowFloat }">
-      <UiButton class="index__btn primary-btn" label="Создать обращение" />
+    <div class="landing__floating" :class="{ 'is-visible': shouldShowFloat }">
+      <UiButton
+        class="landing__btn primary-btn"
+        label="Создать обращение"
+        @action="router.push('/admin')"
+      />
     </div>
   </main>
 </template>
 
 <script setup>
+const router = useRouter();
 definePageMeta({
   layout: "landing",
 });
@@ -60,7 +65,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="scss" scoped>
-.index {
+.landing {
   &__wrapper {
     display: flex;
     flex-direction: column;

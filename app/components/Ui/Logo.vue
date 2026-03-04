@@ -42,7 +42,7 @@ const props = defineProps({
     color: $black;
   }
   &__baige {
-    // color: $blue-500;
+    // color: $secondary-accent;
   }
 }
 

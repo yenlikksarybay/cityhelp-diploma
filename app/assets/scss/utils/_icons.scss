@@ -120,183 +120,63 @@ i.icon {
   -webkit-mask-image: url("@/assets/icons/book-check.svg");
   mask-image: url("@/assets/icons/book-check.svg");
 }
-.hat-mantia {
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/hat-mantia.svg");
-  mask-image: url("@/assets/icons/hat-mantia.svg");
-}
-.monitor-i {
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/monitor-i.svg");
-  mask-image: url("@/assets/icons/monitor-i.svg");
-}
-.paper-check{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/paper-check.svg");
-  mask-image: url("@/assets/icons/paper-check.svg");
-}
-.percentage-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/percentage-i.svg");
-  mask-image: url("@/assets/icons/percentage-i.svg");
-}
-.university-build{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/university-build.svg");
-  mask-image: url("@/assets/icons/university-build.svg");
-}
 .hamburger{
   @extend i, .icon;
   -webkit-mask-image: url("@/assets/icons/hamburger.svg");
   mask-image: url("@/assets/icons/hamburger.svg");
 }
-.close{
+.circle-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/close.svg");
-  mask-image: url("@/assets/icons/close.svg");
+  -webkit-mask-image: url("@/assets/icons/circle-i.svg");
+  mask-image: url("@/assets/icons/circle-i.svg");
 }
-.i-circle{
+.more-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/i-circle.svg");
-  mask-image: url("@/assets/icons/i-circle.svg");
-}
-.checked{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/checked.svg");
-  mask-image: url("@/assets/icons/checked.svg");
+  -webkit-mask-image: url("@/assets/icons/more-i.svg");
+  mask-image: url("@/assets/icons/more-i.svg");
 }
 .plus-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/plus.svg");
-  mask-image: url("@/assets/icons/plus.svg");
+  -webkit-mask-image: url("@/assets/icons/plus-i.svg");
+  mask-image: url("@/assets/icons/plus-i.svg");
 }
-.pdf-file{
+.paper-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/pdf-file.svg");
-  mask-image: url("@/assets/icons/pdf-file.svg");
+  -webkit-mask-image: url("@/assets/icons/paper-i.svg");
+  mask-image: url("@/assets/icons/paper-i.svg");
 }
-.word-file{
+.list-appeal-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/word-file.svg");
-  mask-image: url("@/assets/icons/word-file.svg");
+  -webkit-mask-image: url("@/assets/icons/list-appeal-i.svg");
+  mask-image: url("@/assets/icons/list-appeal-i.svg");
 }
-.eye-open{
+.folders-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/eye-open.svg");
-  mask-image: url("@/assets/icons/eye-open.svg");
+  -webkit-mask-image: url("@/assets/icons/folders-i.svg");
+  mask-image: url("@/assets/icons/folders-i.svg");
 }
-.eye{
+.menu-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/eye.svg");
-  mask-image: url("@/assets/icons/eye.svg");
+  -webkit-mask-image: url("@/assets/icons/menu-i.svg");
+  mask-image: url("@/assets/icons/menu-i.svg");
 }
-.phone-i{
+.spiral-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/phone.svg");
-  mask-image: url("@/assets/icons/phone.svg");
-}
-.location-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/location.svg");
-  mask-image: url("@/assets/icons/location.svg");
-}
-.email-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/email.svg");
-  mask-image: url("@/assets/icons/email.svg");
-}
-.star-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/star-i.svg");
-  mask-image: url("@/assets/icons/star-i.svg");
-}
-.pdf-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/pdf-i.svg");
-  mask-image: url("@/assets/icons/pdf-i.svg");
-}
-.png-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/png-i.svg");
-  mask-image: url("@/assets/icons/png-i.svg");
+  -webkit-mask-image: url("@/assets/icons/spiral-i.svg");
+  mask-image: url("@/assets/icons/spiral-i.svg");
 }
 .user-i{
   @extend i, .icon;
   -webkit-mask-image: url("@/assets/icons/user-i.svg");
   mask-image: url("@/assets/icons/user-i.svg");
 }
-.logout-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/logout-i.svg");
-  mask-image: url("@/assets/icons/logout-i.svg");
-}
-.list-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/list-i.svg");
-  mask-image: url("@/assets/icons/list-i.svg");
-}
-.error-notify{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/error-notify.svg");
-  mask-image: url("@/assets/icons/error-notify.svg");
-}
-.checkmark{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/checkmark.svg");
-  mask-image: url("@/assets/icons/checkmark.svg");
-}
-.lupa-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/lupa-i.svg");
-  mask-image: url("@/assets/icons/lupa-i.svg");
-}
-.trash-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/trash-i.svg");
-  mask-image: url("@/assets/icons/trash-i.svg");
-}
-.share-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/share-i.svg");
-  mask-image: url("@/assets/icons/share-i.svg");
-}
-.circle-play{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/circle-play.svg");
-  mask-image: url("@/assets/icons/circle-play.svg");
-}
-.statistics-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/statistics-i.svg");
-  mask-image: url("@/assets/icons/statistics-i.svg");
-}
 .users-i{
   @extend i, .icon;
   -webkit-mask-image: url("@/assets/icons/users-i.svg");
   mask-image: url("@/assets/icons/users-i.svg");
 }
-.plus-circle{
+.logout-i{
   @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/plus-circle.svg");
-  mask-image: url("@/assets/icons/plus-circle.svg");
-}
-.import-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/import-i.svg");
-  mask-image: url("@/assets/icons/import-i.svg");
-}
-.methodology-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/methodology-i.svg");
-  mask-image: url("@/assets/icons/methodology-i.svg");
-}
-.lampa-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/lampa-i.svg");
-  mask-image: url("@/assets/icons/lampa-i.svg");
-}
-.neighbourhood-i{
-  @extend i, .icon;
-  -webkit-mask-image: url("@/assets/icons/neighbourhood-i.svg");
-  mask-image: url("@/assets/icons/neighbourhood-i.svg");
+  -webkit-mask-image: url("@/assets/icons/logout-i.svg");
+  mask-image: url("@/assets/icons/logout-i.svg");
 }

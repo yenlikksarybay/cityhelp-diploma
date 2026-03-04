@@ -8,13 +8,19 @@
         лишних документов.
       </p>
       <div class="help-us__actions">
-        <UiButton class="help-us__btn tertiary-btn" label="Создать обращение" />
+        <UiButton
+          class="help-us__btn tertiary-btn"
+          label="Создать обращение"
+          @action="router.push('/admin')"
+        />
       </div>
     </div>
   </section>
 </template>
 
-<script setup></script>
+<script setup>
+const router = useRouter();
+</script>
 
 <style lang="scss" scoped>
 .help-us {
