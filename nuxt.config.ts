@@ -1,6 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: ['@nuxt/image', '@pinia/nuxt'],
+	plugins: ["~/plugins/maska.client.js"],
+
 	css: ['@/assets/scss/index.scss'],
 
 	vite: {
@@ -16,7 +18,6 @@ export default defineNuxtConfig({
 			}
 		}
   },
-
 
 	runtimeConfig: {
     public: {

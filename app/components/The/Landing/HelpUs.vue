@@ -1,25 +1,36 @@
 <template>
-  <section class="help-us" data-help-section>
-    <div class="help-us__wrapper" data-aos="fade-up">
-      <p class="help-us__kicker">Начать сейчас</p>
-      <h2 class="help-us__title">Сделайте ваш город лучше сегодня</h2>
-      <p class="help-us__subtitle">
-        Регистрация занимает 30 секунд. Первое обращение — бесплатно и без
-        лишних документов.
-      </p>
-      <div class="help-us__actions">
-        <UiButton
-          class="help-us__btn tertiary-btn"
-          label="Создать обращение"
-          @action="router.push('/admin')"
-        />
+  <client-only>
+    <section class="help-us" data-help-section>
+      <div class="help-us__wrapper" data-aos="fade-up">
+        <p class="help-us__kicker">Начать сейчас</p>
+        <h2 class="help-us__title">Сделайте ваш город лучше сегодня</h2>
+        <p class="help-us__subtitle">
+          Регистрация занимает 30 секунд. Первое обращение — бесплатно и без
+          лишних документов.
+        </p>
+        <div class="help-us__actions">
+          <UiButton
+            class="help-us__btn tertiary-btn"
+            label="Создать обращение"
+            @action="checkAuth"
+          />
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </client-only>
 </template>
 
 <script setup>
 const router = useRouter();
+const authStore = useAuthStore();
+
+const checkAuth = () => {
+  if (authStore.isAuth) {
+    router.push("/panel");
+    return;
+  }
+  authStore.setAuthModal(true);
+};
 </script>
 
 <style lang="scss" scoped>

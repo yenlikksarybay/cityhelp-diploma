@@ -180,3 +180,18 @@ i.icon {
   -webkit-mask-image: url("@/assets/icons/logout-i.svg");
   mask-image: url("@/assets/icons/logout-i.svg");
 }
+.close{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/close.svg");
+  mask-image: url("@/assets/icons/close.svg");
+}
+.eye-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/eye-i.svg");
+  mask-image: url("@/assets/icons/eye-i.svg");
+}
+.eye-open-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/eye-open-i.svg");
+  mask-image: url("@/assets/icons/eye-open-i.svg");
+}

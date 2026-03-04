@@ -7,6 +7,8 @@ export const useAuthStore = defineStore('auth', () => {
 	const getToken = computed(() => token.value)
 	const getUser = computed(() => user.value)
 
+	const isAuthModal = ref(false)
+
 	const router = useRouter()
 
 	const setUser = async (path) => {
@@ -41,6 +43,10 @@ export const useAuthStore = defineStore('auth', () => {
 		}
 	}
 
+	const setAuthModal = (boolean) => {
+		isAuthModal.value = boolean
+	}
+
 	return {
 		user,
 		token,
@@ -48,8 +54,10 @@ export const useAuthStore = defineStore('auth', () => {
 		isToken,
 		getToken,
 		getUser,
+		isAuthModal,
 		setToken,
 		setUser,
 		logout,
+		setAuthModal
 	}
 })

@@ -13,7 +13,7 @@
       <UiButton
         class="landing__btn primary-btn"
         label="Создать обращение"
-        @action="router.push('/admin')"
+        @action="checkAuth"
       />
     </div>
   </main>
@@ -21,6 +21,7 @@
 
 <script setup>
 const router = useRouter();
+const authStore = useAuthStore();
 definePageMeta({
   layout: "landing",
 });
@@ -37,6 +38,15 @@ const hideForHelp = ref(false);
 const shouldShowFloat = computed(() => showFloat.value && !hideForHelp.value);
 
 let observer;
+
+const checkAuth = () => {
+  if (authStore.isAuth) {
+    router.push("/panel");
+    return;
+  }
+  router.push("/?auth=login");
+  authStore.setAuthModal(true);
+};
 
 const handleScroll = () => {
   showFloat.value = window.scrollY > 200;

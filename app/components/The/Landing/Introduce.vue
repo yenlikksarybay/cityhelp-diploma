@@ -1,17 +1,19 @@
 <template>
-  <section class="introduce" data-aos="fade-up">
-    <div class="introduce__wrapper">
-      <div class="introduce__scene">
-        <img
-          class="introduce__decor"
-          src="/assets/images/landing/decor.webp"
-          alt="Decor"
-        />
-        <div class="introduce__logo"><p>Logo</p></div>
-        <div class="introduce__word" aria-hidden="true">CITYHELP</div>
+  <client-only>
+    <section class="introduce" data-aos="fade-up">
+      <div class="introduce__wrapper">
+        <div class="introduce__scene">
+          <img
+            class="introduce__decor"
+            src="/assets/images/landing/decor.webp"
+            alt="Decor"
+          />
+          <div class="introduce__logo"><p>Logo</p></div>
+          <div class="introduce__word" aria-hidden="true">CITYHELP</div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  </client-only>
 </template>
 
 <script setup></script>
