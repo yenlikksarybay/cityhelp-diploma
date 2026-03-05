@@ -80,12 +80,24 @@
 .title-lg{
 	font-size: 28px;
 	font-weight: 500;
+	line-height: 120%;
+
 }
 
 .title-md{
 	font-size: 22px;
-	font-weight: 400;
+	font-weight: 500;
+	line-height: 120%;
+
 }
+
+.title-sm{
+	font-size: 18px;
+	font-weight: 500;
+	line-height: 120%;
+}
+
+
 
 // Transitions
 // Slide Down

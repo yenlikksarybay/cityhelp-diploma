@@ -110,7 +110,7 @@ i.icon {
     -webkit-mask-image: url("@/assets/icons/chevron.svg");
     mask-image: url("@/assets/icons/chevron.svg");
 }
-.checkmark {
+.checkmark-i {
   @extend i, .icon;
   -webkit-mask-image: url("@/assets/icons/checkmark.svg");
   mask-image: url("@/assets/icons/checkmark.svg");
@@ -194,4 +194,24 @@ i.icon {
   @extend i, .icon;
   -webkit-mask-image: url("@/assets/icons/eye-open-i.svg");
   mask-image: url("@/assets/icons/eye-open-i.svg");
+}
+.location-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/location-i.svg");
+  mask-image: url("@/assets/icons/location-i.svg");
+}
+.status-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/status-i.svg");
+  mask-image: url("@/assets/icons/status-i.svg");
+}
+.time-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/time-i.svg");
+  mask-image: url("@/assets/icons/time-i.svg");
+}
+.arrow-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/arrow-i.svg");
+  mask-image: url("@/assets/icons/arrow-i.svg");
 }

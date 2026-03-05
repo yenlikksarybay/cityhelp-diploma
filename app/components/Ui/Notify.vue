@@ -1,10 +1,10 @@
 <template>
   <transition-group
-    v-if="notifications?.length"
+    appear
     name="notification"
     tag="div"
     class="notifications-queue"
-    :class="{ 'notifications-queue--hide': !notifications.length }"
+    :class="{ 'notifications-queue--hide': !notifications?.length }"
   >
     <div
       v-for="notification in notifications"
@@ -21,9 +21,7 @@
         "
       >
         <UiIcon
-          :icon="
-            notification.status === 'success' ? 'checkmark' : 'error-notify'
-          "
+          :icon="notification.status === 'success' ? 'checkmark-i' : 'close'"
           :size="notification.status === 'success' ? 'size-20' : 'size-24'"
           color="white"
         />
@@ -40,8 +38,10 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
+
 const notifyStore = useNotifyStore();
-const notifications = ref(notifyStore.notifications);
+const notifications = computed(() => notifyStore.notifications);
 </script>
 
 <style lang="scss" scoped>
@@ -57,7 +57,7 @@ const notifications = ref(notifyStore.notifications);
   max-width: 300px;
   width: 100%;
   &--hide {
-    z-index: -1;
+    pointer-events: none;
   }
 }
 
