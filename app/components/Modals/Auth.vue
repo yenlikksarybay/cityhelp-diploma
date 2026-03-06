@@ -1,7 +1,7 @@
 <template>
   <div class="auth">
     <div class="auth__wrapper">
-      <UiLogo class="auth__logo" />
+      <UiLogo type="horizontal" class="auth__logo" />
 
       <transition name="slide-down" mode="out-in">
         <TheAuthLogin v-if="route.query?.auth === 'login'" />

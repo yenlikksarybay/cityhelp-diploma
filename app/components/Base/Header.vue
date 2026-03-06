@@ -58,7 +58,7 @@ const asideStore = useAsideStore();
   &__title {
     transition: 0.225s margin;
     &--open {
-      margin-left: 110px;
+      margin-left: 70px;
     }
   }
   &__link {

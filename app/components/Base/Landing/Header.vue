@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header__wrapper">
-      <UiLogo />
+      <UiLogo type="horizontal" />
 
       <nav class="header__nav">
         <ul class="header__ul">

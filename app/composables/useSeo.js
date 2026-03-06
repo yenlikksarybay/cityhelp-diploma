@@ -1,5 +1,5 @@
 export function useSeo({ title, description }) {
-	let darynBagdarLogo = "";
+	let darynBagdarLogo = "https://cityhelp-diploma-yij7.vercel.app/assets/images/logo/logo-full.png";
 
 	useSeoMeta({
 		title: `CityHelp - ${title}`,
