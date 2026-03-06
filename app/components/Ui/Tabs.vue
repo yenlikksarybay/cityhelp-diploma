@@ -24,7 +24,7 @@
           v-if="tab.icon"
           :icon="tab.icon"
           size="size-24"
-          :color="{ white: tab?.id === modelValue?.id }"
+          :color="tab?.id === modelValue?.id ? 'white' : ''"
         />
         {{ tab.name }}
       </button>

@@ -1,7 +1,7 @@
 <template>
   <section class="appeals">
     <div class="appeals__wrapper">
-      <UiTabs :tabs="tabs" v-model="oneTab" />
+      <UiTabs :tabs="tabs" v-model="oneTab" :is-scroll="true" />
 
       <div class="appeals__filter">
         <UiInput
@@ -15,7 +15,7 @@
           :options="priorities"
           v-model="onePriority"
         />
-        <UiButton class="secondary-btn" label="Искать" />
+        <UiButton class="appeals__btn secondary-btn" label="Искать" />
       </div>
 
       <ThePanelAdminAppealsTable />
@@ -83,6 +83,18 @@ const oneTab = ref(tabs[0]);
     display: flex;
     align-items: center;
     gap: $gap-md;
+  }
+}
+
+@media (max-width: 625px) {
+  .appeals {
+    &__filter {
+      flex-direction: column;
+    }
+    &__btn {
+      width: 50%;
+      margin-left: auto;
+    }
   }
 }
 </style>
