@@ -43,9 +43,11 @@
 </template>
 
 <script setup>
+const authStore = useAuthStore();
 const emit = defineEmits(["nextStep", "prevStep"]);
 
 const route = useRoute();
+const router = useRouter();
 
 const props = defineProps({
   email: {
@@ -67,6 +69,7 @@ const disabledBtn = computed(() => {
 });
 
 const postLogin = () => {
+  authStore.setAuthModal(false);
   router.push("/panel");
   return;
   if (!disabledBtn.value) {
