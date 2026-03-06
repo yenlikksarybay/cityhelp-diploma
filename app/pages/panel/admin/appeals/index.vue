@@ -8,6 +8,7 @@
           before-icon="lupa-i"
           icon-size="size-20"
           placeholder="Поиск по описанию"
+          v-model="search"
         />
         <UiSelect
           placeholder="Проритет"
@@ -25,6 +26,7 @@
 <script setup>
 useSeo({ title: "Список обращений" });
 
+const search = ref("");
 const priorities = [
   {
     id: 1,
