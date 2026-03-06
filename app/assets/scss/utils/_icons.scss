@@ -215,3 +215,8 @@ i.icon {
   -webkit-mask-image: url("@/assets/icons/arrow-i.svg");
   mask-image: url("@/assets/icons/arrow-i.svg");
 }
+.lupa-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/lupa-i.svg");
+  mask-image: url("@/assets/icons/lupa-i.svg");
+}

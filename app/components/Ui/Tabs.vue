@@ -20,6 +20,12 @@
         }"
         @click="emit('update:modelValue', tab)"
       >
+        <UiIcon
+          v-if="tab.icon"
+          :icon="tab.icon"
+          size="size-24"
+          :color="{ white: tab?.id === modelValue?.id }"
+        />
         {{ tab.name }}
       </button>
     </div>
@@ -67,6 +73,10 @@ const props = defineProps({
     transition: 0.4s background-color;
     white-space: nowrap;
     font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $gap-md;
     &--line {
       padding: $padding-md;
       width: fit-content;
