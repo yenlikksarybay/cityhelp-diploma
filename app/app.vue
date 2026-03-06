@@ -6,7 +6,6 @@
       </NuxtLayout>
 
       <UiNotify />
-
       <UiLoader />
     </div>
   </div>
