@@ -39,9 +39,9 @@ const authStore = useAuthStore();
 const router = useRouter();
 
 const checkRegister = () => {
-  authStore.setAuthModal(false);
+  // authStore.setAuthModal(false);
 
-  router.push("/panel");
+  router.push("/?auth=sms");
 };
 </script>
 

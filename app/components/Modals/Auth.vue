@@ -6,6 +6,7 @@
       <transition name="slide-down" mode="out-in">
         <TheAuthLogin v-if="route.query?.auth === 'login'" />
         <TheAuthRegister v-else-if="route.query?.auth === 'register'" />
+        <TheAuthSmsCode v-else-if="route.query?.auth === 'sms'" />
       </transition>
     </div>
   </div>

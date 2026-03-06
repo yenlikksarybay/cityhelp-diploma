@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: ['@nuxt/image', '@pinia/nuxt', 'nuxt-swiper'],
-	plugins: ["~/plugins/maska.client.js"],
+	plugins: ["~/plugins/maska.client.js", "~/plugins/sms-code.client.js"],
 
 	css: ['@/assets/scss/index.scss'],
 
