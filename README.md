@@ -1,4 +1,4 @@
-<p align="center"> <img style="border-radius: 12px" src="/app/assets/images/logo/logo.svg" alt="CityHelp Logo" width="200"/> </p>
+<p align="center"> <img style="border-radius: 12px" src="/app/assets/images/logo/logo.png" alt="CityHelp Logo" width="200"/> </p>
 
 <h1 align="center">CityHelp</h1>
 
