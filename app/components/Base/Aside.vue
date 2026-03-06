@@ -25,7 +25,7 @@
               :icon="asideStore.isOpen ? 'hamburger' : 'chevron'"
               color="black"
               size="size-24"
-              :deg="asideStore.isOpen ? 'down' : 'top'"
+              :deg="asideStore.isOpen ? 'down' : 'right'"
               @click="asideStore.toggle()"
             />
             <UiIcon

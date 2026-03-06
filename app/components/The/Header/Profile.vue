@@ -7,14 +7,14 @@
         src=""
         alt="Daryn Bagdar User"
       />
-      <div v-else class="profile__avatar profile__avatar--default"></div>
+      <div v-else class="profile__avatar profile__avatar--default">Y</div>
 
       <div class="profile__user">
-        <p class="profile__name">{{ user.name }}</p>
+        <p class="profile__name">{{ user.name }} Yenlik</p>
         <p class="profile__name profile__name--mobile">
           {{ user.name?.trim().split(" ")[0] || "" }}
         </p>
-        <p class="profile__role">Admin</p>
+        <p class="profile__role">Superadmin</p>
       </div>
 
       <transition name="profile-nav">
@@ -93,6 +93,7 @@ onUnmounted(() => {
     padding: $padding-md;
     width: 100%;
     border-radius: $border-r-md;
+    box-shadow: $box-shadow;
     cursor: pointer;
     position: relative;
     min-width: 150px;
@@ -104,7 +105,11 @@ onUnmounted(() => {
     border-radius: 50%;
     object-fit: cover;
     &--default {
-      background-color: $surface-200;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: $white;
+      background-color: $secondary-accent;
     }
   }
   &__name {
@@ -114,6 +119,7 @@ onUnmounted(() => {
     }
   }
   &__role {
+    font-size: 14px;
     color: $surface-400;
   }
   &__list {
