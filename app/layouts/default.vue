@@ -87,6 +87,7 @@ watch(
     }
     &__title {
       display: block;
+      font-weight: 600;
     }
     &__aside {
       &--mobile {

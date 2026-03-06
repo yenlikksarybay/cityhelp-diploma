@@ -34,7 +34,7 @@
               <p>{{ row.category }}</p>
             </td>
             <td class="table__cell">
-              {{ formatKzPhone(row.phone || "") || "?" }}
+              <UiStatusText status="rejected" :text="row.priority" />
             </td>
             <td class="table__cell">
               {{ row.email }}
@@ -60,7 +60,7 @@ const students = [
   {
     description: "Надо чинить дорогу",
     category: "Починить",
-    phone: "Низкая",
+    priority: "Низкая",
     email: "Иван",
     employee: "Сергей",
     user_appeals_count: 0,

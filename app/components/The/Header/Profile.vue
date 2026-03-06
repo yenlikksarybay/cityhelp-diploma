@@ -96,7 +96,6 @@ onUnmounted(() => {
     box-shadow: $box-shadow;
     cursor: pointer;
     position: relative;
-    min-width: 150px;
     width: 100%;
   }
   &__avatar {
