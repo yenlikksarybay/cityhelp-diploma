@@ -16,7 +16,9 @@
           aria-hidden="true"
           data-aos="zoom-in"
           data-aos-delay="150"
-        ></div>
+        >
+          <UiLogo width="200px" :is-text-hide="true" />
+        </div>
 
         <div class="represent__right" data-aos="fade-up" data-aos-delay="200">
           <h2 class="represent__eyebrow">
@@ -120,6 +122,9 @@
     border-radius: 20px;
     margin: 0 auto;
     background: $tertiary-accent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     box-shadow:
       0 16px 40px rgba(0, 0, 0, 0.18),
       inset 0 0 0 1px rgba(255, 255, 255, 0.35);

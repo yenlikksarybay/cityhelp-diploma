@@ -12,7 +12,9 @@
         preload
         loading="lazy"
       />
-      <p class="logo__text"><span class="logo__baige">City</span> Help</p>
+      <p v-if="!isTextHide" class="logo__text">
+        <span class="logo__baige">City</span> Help
+      </p>
     </div>
   </div>
 </template>
@@ -24,6 +26,7 @@ const props = defineProps({
     type: String,
     default: "vertical",
   },
+  isTextHide: Boolean,
 });
 </script>
 
