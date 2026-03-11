@@ -1,7 +1,19 @@
 <template>
   <section class="appeal">
     <div class="appeal__wrapper">
-      <h2 class="appeal__title title-md">Обращение 2</h2>
+      <div class="appeal__top">
+        <h2 class="appeal__title title-md">Обращение 2</h2>
+        <div class="appeal__top-inner">
+          <UiButton
+            before-icon="trash-i"
+            icon-size="size-24"
+            icon-color="red-300"
+            class="appeal__btn appeal__btn--delete secondary-btn"
+            label="Удалить обращение"
+            @action="openDeleteModal"
+          />
+        </div>
+      </div>
 
       <div class="appeal__box">
         <div
@@ -11,19 +23,23 @@
           <ThePanelAppealContent />
 
           <ThePanelAppealAdminAnswer />
+
+          <ThePanelAppealAdminTextarea />
         </div>
 
         <div
           class="appeal__aside"
           :class="{ 'appeal__aside--aside': !asideStore.isOpen }"
         >
-          <ThePanelAppealAsideInfo />
+          <div class="appeal__aside-inner">
+            <ThePanelAppealAsideInfo />
 
-          <UiButton
-            @action="openEvaluationModal"
-            class="appeal__aside-btn secondary-btn"
-            label="Оценить"
-          />
+            <UiButton
+              @action="openEvaluationModal"
+              class="appeal__aside-btn secondary-btn"
+              label="Оценить"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -37,6 +53,15 @@
   >
     <ModalsEvaluationAppeal @like="onLike" @dislike="onDislike" />
   </UiModal>
+
+  <UiModal
+    :is-open="isOpenDeleteModal"
+    title="Ты точно уверены?"
+    max-width="600px"
+    @close="closeDeleteModal"
+  >
+    <ModalsDeleteAppeal @cancel="onCancel" @delete="onDelete" />
+  </UiModal>
 </template>
 
 <script setup>
@@ -44,6 +69,15 @@ const asideStore = useAsideStore();
 const route = useRoute();
 
 const isOpenEvaluationModal = ref(false);
+const isOpenDeleteModal = ref(false);
+
+const openDeleteModal = () => {
+  isOpenDeleteModal.value = true;
+};
+
+const closeDeleteModal = () => {
+  isOpenDeleteModal.value = false;
+};
 
 const openEvaluationModal = () => {
   isOpenEvaluationModal.value = true;
@@ -62,6 +96,14 @@ const onDislike = () => {
   useNotify({ title: "Оценено", status: "success" });
   closeEvaluationModal();
 };
+
+const onCancel = () => {
+  closeDeleteModal();
+};
+
+const onDelete = () => {
+  closeDeleteModal();
+};
 </script>
 
 <style lang="scss" scoped>
@@ -74,6 +116,7 @@ const onDislike = () => {
   &__box {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     gap: $gap-md;
   }
   &__content {
@@ -82,21 +125,47 @@ const onDislike = () => {
     width: 100%;
     padding: $padding-md;
     border-radius: $border-r-md;
+    display: flex;
+    flex-direction: column;
+    gap: $gap-md;
     &--aside {
       max-width: 60%;
     }
   }
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $gap-md;
+  }
+  &__btn {
+    &--delete {
+      border: 1px solid $red-300;
+      color: $red-300;
+      &:hover {
+        background: transparent;
+      }
+    }
+  }
   &__aside {
+    position: relative;
     flex-shrink: 0;
+    align-self: flex-start;
     max-width: 30%;
     width: 100%;
     padding: $padding-md;
     border-radius: $border-r-md;
-    height: 100%;
     box-shadow: $box-shadow;
     display: flex;
     flex-direction: column;
     gap: $gap-xl;
+    &-inner {
+      position: sticky;
+      top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: $gap-xl;
+    }
     &-btn {
       width: 100%;
     }
@@ -108,14 +177,20 @@ const onDislike = () => {
 
 @media (max-width: 1200px) {
   .appeal {
+    &__top {
+      align-items: flex-start;
+      flex-direction: column;
+    }
     &__box {
       flex-direction: column;
+      gap: $gap-xxl;
     }
     &__aside,
     &__content {
       max-width: 100%;
     }
     &__aside {
+      position: relative;
       order: -1;
     }
   }

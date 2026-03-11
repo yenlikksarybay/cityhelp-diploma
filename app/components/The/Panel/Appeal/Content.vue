@@ -2,7 +2,7 @@
   <div class="content">
     <div class="content__wrapper">
       <div class="content__comment">
-        <h3 class="content__title title-md">Комментарий</h3>
+        <h3 class="content__title title-md title-point">Комментарий</h3>
         <p class="content__description">
           Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio
           quibusdam vero, provident obcaecati amet veritatis! Aspernatur illum
@@ -14,7 +14,7 @@
       </div>
 
       <div class="content__images">
-        <h3 class="content__title title-md">Изображения</h3>
+        <h3 class="content__title title-md title-point">Изображения</h3>
         <UiSwiper
           :loop="false"
           :pagination="true"
@@ -32,7 +32,7 @@
       </div>
 
       <section class="content__map">
-        <h3 class="content__title title-md">Место на карте</h3>
+        <h3 class="content__title title-md title-point">Место на карте</h3>
         <UiMap class="content__location" />
       </section>
     </div>
@@ -65,20 +65,6 @@
   }
   &__location {
     // max-height: 250px;
-  }
-  &__title {
-    position: relative;
-    margin-left: 16px;
-    &::before {
-      position: absolute;
-      left: -16px;
-      top: 7px;
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: $secondary-accent;
-    }
   }
   &__slide {
     display: flex;

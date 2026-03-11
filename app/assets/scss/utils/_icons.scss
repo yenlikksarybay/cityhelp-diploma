@@ -225,3 +225,8 @@ i.icon {
   -webkit-mask-image: url("@/assets/icons/like-i.svg");
   mask-image: url("@/assets/icons/like-i.svg");
 }
+.trash-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/trash-i.svg");
+  mask-image: url("@/assets/icons/trash-i.svg");
+}

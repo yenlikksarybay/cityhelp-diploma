@@ -59,7 +59,7 @@ const defineIcon = computed(() => {
       color: $white;
     }
     &--pending {
-      background-color: $green-500;
+      background-color: $yellow-400;
       color: $white;
     }
     &--rejected {

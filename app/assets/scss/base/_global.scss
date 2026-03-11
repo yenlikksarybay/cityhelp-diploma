@@ -97,6 +97,21 @@
 	line-height: 120%;
 }
 
+.title-point{
+  position: relative;
+  margin-left: 16px;
+  &::before {
+    position: absolute;
+    left: -16px;
+    top: 7px;
+    content: "";
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: $secondary-accent;
+	}
+}
+
 
 
 // Transitions

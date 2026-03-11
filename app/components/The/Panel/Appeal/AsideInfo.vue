@@ -1,7 +1,7 @@
 <template>
   <div class="info">
     <div class="info__wrapper">
-      <h4 class="info__title title-md">Информация</h4>
+      <h4 class="info__title title-md title-point">Информация</h4>
       <ul class="info__ul">
         <li class="info__li" v-for="list in lists" :key="list.key">
           <p class="info__key">{{ list.key }}</p>
@@ -33,6 +33,10 @@ const lists = [
     value: "Yenlik Sarybay",
   },
   {
+    key: "Местоположение:",
+    value: "Көктем 3",
+  },
+  {
     key: "Категория:",
     value: "Служба городского управления",
   },
@@ -44,7 +48,7 @@ const lists = [
   {
     key: "Проритетность:",
     value: "Высокая",
-    level: "pending",
+    level: "rejected",
   },
   {
     key: "Дата создание:",
@@ -79,20 +83,6 @@ const lists = [
     font-weight: 500;
     text-align: right;
     // white-space: nowrap;
-  }
-  &__title {
-    position: relative;
-    margin-left: 16px;
-    &::before {
-      position: absolute;
-      left: -16px;
-      top: 7px;
-      content: "";
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background-color: $secondary-accent;
-    }
   }
 }
 </style>
