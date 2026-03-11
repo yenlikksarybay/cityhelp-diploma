@@ -1,6 +1,6 @@
 <template>
   <section class="card">
-    <nuxt-link to="" class="card__wrapper">
+    <nuxt-link to="/panel/appeal/1" class="card__wrapper">
       <UiLoadImage class="card__image" />
 
       <div class="card__content">

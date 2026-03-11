@@ -220,3 +220,8 @@ i.icon {
   -webkit-mask-image: url("@/assets/icons/lupa-i.svg");
   mask-image: url("@/assets/icons/lupa-i.svg");
 }
+.like-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/like-i.svg");
+  mask-image: url("@/assets/icons/like-i.svg");
+}
