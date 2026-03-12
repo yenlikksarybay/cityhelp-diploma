@@ -130,3 +130,18 @@
   opacity: 0;
   transform: translateY(20px);
 }
+
+
+//Up fade
+.up-fade-enter-active,
+.up-fade-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.up-fade-enter-from,
+.up-fade-leave-to {
+  opacity: 0;
+  transform: translateY(24px);
+}

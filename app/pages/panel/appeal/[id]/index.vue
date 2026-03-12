@@ -43,6 +43,8 @@
         </div>
       </div>
     </div>
+
+    <UiUpToTop class="appeal__up" />
   </section>
 
   <UiModal
@@ -137,6 +139,12 @@ const onDelete = () => {
     justify-content: space-between;
     align-items: center;
     gap: $gap-md;
+  }
+  &__up {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 50;
   }
   &__btn {
     &--delete {
