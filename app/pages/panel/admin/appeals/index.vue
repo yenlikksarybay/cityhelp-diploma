@@ -15,7 +15,6 @@
           :options="priorities"
           v-model="onePriority"
         />
-        <UiButton class="appeals__btn secondary-btn" label="Искать" />
       </div>
 
       <ThePanelAdminAppealsTable />

@@ -5,6 +5,7 @@
         <thead class="table__head">
           <tr class="table__row">
             <th class="table__cell table__cell--head">{{ "Описание" }}</th>
+            <th class="table__cell table__cell--head">{{ "Изображение" }}</th>
             <th class="table__cell table__cell--head">
               {{ "Категория" }}
             </th>
@@ -12,7 +13,7 @@
               {{ "Проритет" }}
             </th>
             <th class="table__cell table__cell--head">
-              {{ "Пользователь" }}
+              {{ "Дедлайн" }}
             </th>
             <th class="table__cell table__cell--head">
               {{ "Дата регистрации" }}
@@ -33,6 +34,17 @@
             <td class="table__cell table__cell--topic">
               {{ row.description }}
             </td>
+            <td class="table__cell table__cell--topic">
+              <div v-if="row.preview || true">
+                <img
+                  @click="openPreview"
+                  class="table__preview"
+                  src="https://yastatic.net/naydex/yandex-search/1TLRG7322/ead043Sb/t-dsrVqNqNlf6m5zwI3gdIyq4T98ht7zek4YO9BdzZzz8Qkx8cGPwbHHBd0wKbmmGdNabzukPUavS8uts-AgKnfmGSxeSdyYqn9qwgXNYETcizTrTZcbUz-fvB4V3O08c7FpglIGmPancHbf9x4uMm03DpveNI1Ta9ouOYADw"
+                  alt="Preview"
+                />
+              </div>
+              <UiIcon v-else icon="close" />
+            </td>
             <td class="table__cell">
               <p>{{ row.category }}</p>
             </td>
@@ -40,7 +52,7 @@
               <UiStatusText status="rejected" :text="row.priority" />
             </td>
             <td class="table__cell">
-              {{ row.email }}
+              {{ row.deadline }}
             </td>
             <td class="table__cell">
               {{ formatDateToDots(row.created_at) || "?" }}
@@ -55,7 +67,7 @@
               <UiButton
                 tag="a"
                 :href="`/panel/appeal/1`"
-                label="Перейти"
+                label="Детально"
                 class="secondary-btn"
               />
             </td>
@@ -64,15 +76,38 @@
       </table>
     </div>
   </div>
+
+  <UiModal
+    :is-open="isOpenPreview"
+    max-width="750px"
+    @close="closePreview"
+    :borderless="true"
+  >
+    <ModalsPreviewImage
+      :images="[
+        'https://yastatic.net/naydex/yandex-search/1TLRG7322/ead043Sb/t-dsrVqNqNlf6m5zwI3gdIyq4T98ht7zek4YO9BdzZzz8Qkx8cGPwbHHBd0wKbmmGdNabzukPUavS8uts-AgKnfmGSxeSdyYqn9qwgXNYETcizTrTZcbUz-fvB4V3O08c7FpglIGmPancHbf9x4uMm03DpveNI1Ta9ouOYADw',
+        'https://yastatic.net/naydex/yandex-search/1TLRG7423/ead043Sb/t-dsrVqNqNlf6m5zwI3gdIyq4T98ht7zek4YO9B4zZyzEVnENHGq8bHC4GjgCen2CTZvChsUWCMPa1sNU9BVH1KmKSkeSZzoqm86YkQpIAQc6xWOqAbagr9uqUplHTmJJoGppJIHePaWoXcOR_7OQf03Cw6vtH3zeg9KaJJTw5',
+      ]"
+    />
+  </UiModal>
 </template>
 
 <script setup>
+const isOpenPreview = ref(null);
+const openPreview = () => {
+  isOpenPreview.value = true;
+};
+
+const closePreview = () => {
+  isOpenPreview.value = false;
+};
+
 const students = [
   {
     description: "Надо чинить дорогу",
     category: "Починить",
     priority: "Низкая",
-    email: "Иван",
+    deadline: "24.3.2026",
     employee: "Сергей",
     user_appeals_count: 0,
     created_at: "2024-01-01T00:00:00.000Z",
@@ -88,6 +123,11 @@ const students = [
 
   &__wrapper {
     width: 100%;
+  }
+  &__preview {
+    width: 100px;
+    border-radius: $border-r-md;
+    cursor: pointer;
   }
   &__table {
     border-collapse: separate;

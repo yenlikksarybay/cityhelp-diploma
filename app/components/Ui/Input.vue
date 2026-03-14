@@ -54,7 +54,7 @@ const props = defineProps({
   modelValue: [String, Number],
   maska: {
     type: String,
-    default: " ",
+    default: "",
   },
   label: String,
   placeholder: String,

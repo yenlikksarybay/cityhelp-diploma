@@ -7,7 +7,10 @@
           <div
             class="modal__block"
             :style="{ maxWidth: maxWidth }"
-            :class="{ 'modal__block--full': fullScreen }"
+            :class="{
+              'modal__block--full': fullScreen,
+              'modal__block--borderless': borderless,
+            }"
           >
             <div class="modal__head">
               <div class="modal__title" v-if="title">{{ title }}</div>
@@ -18,6 +21,7 @@
                 @click="emit('close')"
                 class="modal__close"
                 :class="{ 'modal__close--only': !title }"
+                :color="borderless ? 'white' : ''"
               />
             </div>
             <div
@@ -46,6 +50,7 @@ const props = defineProps({
     default: false,
   },
   title: String,
+  borderless: Boolean,
 });
 
 const emit = defineEmits(["close"]);
@@ -58,8 +63,8 @@ const emit = defineEmits(["close"]);
   bottom: 0;
   left: 0;
   right: 0;
-  display: flex;
   z-index: 400;
+  display: flex;
   align-items: center;
   justify-content: center;
   &__head {
@@ -89,6 +94,9 @@ const emit = defineEmits(["close"]);
     max-width: 300px;
     width: 100%;
     position: relative;
+    &--borderless {
+      background-color: transparent;
+    }
     &--full {
       height: 100%;
       border-radius: 0;
