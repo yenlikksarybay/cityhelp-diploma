@@ -31,10 +31,10 @@
         </thead>
         <tbody class="table__body" v-if="students.length">
           <tr class="table__row" v-for="(row, index) in students" :key="row.id">
-            <td class="table__cell table__cell--topic">
+            <td class="table__cell table__cell--first">
               {{ row.description }}
             </td>
-            <td class="table__cell table__cell--topic">
+            <td class="table__cell">
               <div v-if="row.preview || true">
                 <img
                   @click="openPreview"
@@ -171,11 +171,12 @@ const students = [
     border-bottom: 1px solid $surface-200;
     background-color: $white;
     height: 100%;
+    &--first {
+      min-width: 200px;
+    }
     &--head {
       background-color: $surface-150;
       padding: $padding-md;
-      // border-radius: $border-r-md;
-      // border: 1px solid $secondary-accent;
       &:first-child {
         border-top-left-radius: $border-r-md;
       }

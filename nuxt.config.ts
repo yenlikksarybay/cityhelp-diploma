@@ -32,8 +32,14 @@ export default defineNuxtConfig({
   },
 
 	runtimeConfig: {
+		mongodbUri: "",
+		mongodbUser: "",
+		mongodbPassword: "",
+		mongodbHost: "127.0.0.1:27017",
+		mongodbDatabase: "cityhelp",
+		serverPort: "",
     public: {
-        baseURL: 'https://api.darynbagdar.kz/api'
+        baseURL: ''
     }
 	},
 
