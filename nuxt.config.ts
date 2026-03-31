@@ -13,6 +13,11 @@ export default defineNuxtConfig({
           type: "text/javascript",
           defer: true,
         },
+        {
+          src: "https://yastatic.net/s3/mapsapi-jslibs/heatmap/0.0.1/heatmap.min.js",
+          type: "text/javascript",
+          defer: true,
+        },
       ],
     },
   },
@@ -39,11 +44,9 @@ export default defineNuxtConfig({
 		mongodbDatabase: "cityhelp",
 		serverPort: "",
     public: {
-        baseURL: ''
+        baseURL: ""
     }
 	},
 
-
-  compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 })

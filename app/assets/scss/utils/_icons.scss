@@ -230,3 +230,13 @@ i.icon {
   -webkit-mask-image: url("@/assets/icons/trash-i.svg");
   mask-image: url("@/assets/icons/trash-i.svg");
 }
+.language-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/language-i.svg");
+  mask-image: url("@/assets/icons/language-i.svg");
+}
+.ai-i{
+  @extend i, .icon;
+  -webkit-mask-image: url("@/assets/icons/ai-i.svg");
+  mask-image: url("@/assets/icons/ai-i.svg");
+}

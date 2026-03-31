@@ -162,7 +162,7 @@ const navs = computed(() => {
       ],
     },
     {
-      id: 4,
+      id: 5,
       name: "Общие",
       lists: [
         {
@@ -176,6 +176,24 @@ const navs = computed(() => {
           route: { path: "/panel/about-us" },
           path: "/panel/about-us",
           icon: "spiral-i",
+        },
+      ],
+    },
+    {
+      id: 6,
+      name: "Дополнительно",
+      lists: [
+        {
+          name: "Переводы",
+          route: { path: "/panel/admin/translations" },
+          path: "/panel/admin/translations",
+          icon: "language-i",
+        },
+        {
+          name: "AI Промты",
+          route: { path: "/panel/admin/prompts" },
+          path: "/panel/admin/prompts",
+          icon: "ai-i",
         },
       ],
     },

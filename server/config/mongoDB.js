@@ -23,7 +23,7 @@ export const connectToDatabase = async (event) => {
 	}
 
 	if (!cachedPromise) {
-		const config = useRuntimeConfig(event);
+		const config = event ? useRuntimeConfig(event) : useRuntimeConfig();
 		const mongoUri = buildMongoUri(config);
 
 		cachedPromise = mongoose

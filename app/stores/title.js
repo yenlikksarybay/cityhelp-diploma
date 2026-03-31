@@ -38,6 +38,14 @@ export const useTitleStore = defineStore("title", () => {
 				title.value = "Сотрудники"
 				activeRoute.value = '/panel/admin/staff'
 				break;
+			case '/panel/admin/translations':
+				title.value = "Переводы"
+				activeRoute.value = '/panel/admin/translations'
+				break;
+			case '/panel/admin/prompts':
+				title.value = "AI Промты"
+				activeRoute.value = '/panel/admin/prompts'
+				break;
 
 			//Employee
 			case '/panel/employee/appeals':
