@@ -1,7 +1,7 @@
 <template>
   <div class="hero">
     <div>
-      <h2 class="hero__title title-md">Админка переводов</h2>
+      <h2 class="hero__title title-md hidden">Админка переводов</h2>
       <p class="hero__text">
         Управляйте ключами и текстами для казахского, русского и английского
         языков в одном месте.

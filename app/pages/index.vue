@@ -11,7 +11,7 @@
 
     <div class="landing__floating" :class="{ 'is-visible': shouldShowFloat }">
       <UiButton
-        class="landing__btn primary-btn"
+        class="landing__btn primary-btn primary-btn--hover"
         label="Создать обращение"
         @action="checkAuth"
       />

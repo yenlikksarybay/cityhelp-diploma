@@ -1,5 +1,6 @@
 <template>
-  <div class="list">
+  <section class="list">
+    <h3 class="list__title title-md">Cписок переводов</h3>
     <div class="list__filters">
       <UiInput
         :model-value="search"
@@ -25,7 +26,9 @@
         v-for="translation in translations"
         :key="translation.id"
         class="list__card"
-        :class="{ 'list__card--active': translation.id === selectedTranslationId }"
+        :class="{
+          'list__card--active': translation.id === selectedTranslationId,
+        }"
       >
         <div class="list__head">
           <div>
@@ -74,7 +77,7 @@
         </p>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script setup>
@@ -86,12 +89,7 @@ defineProps({
   selectedTranslationId: { type: Number, default: null },
 });
 
-defineEmits([
-  "update:search",
-  "update:language",
-  "edit",
-  "remove",
-]);
+defineEmits(["update:search", "update:language", "edit", "remove"]);
 </script>
 
 <style lang="scss" scoped>

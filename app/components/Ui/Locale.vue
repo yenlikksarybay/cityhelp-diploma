@@ -18,7 +18,7 @@
           </p>
         </div>
       </transition>
-      <UiIcon class="lang__icon" icon="chevron" deg="left" size="size-12" />
+      <!-- <UiIcon class="lang__icon" icon="chevron" deg="left" size="size-12" /> -->
     </div>
   </div>
 </template>

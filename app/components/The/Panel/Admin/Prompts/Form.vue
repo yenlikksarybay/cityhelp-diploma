@@ -93,7 +93,9 @@
               :model-value="form.systemPrompt"
               placeholder="Роль модели, задача, стиль ответа, ограничения"
               :max-length="1200"
-              @update:model-value="$emit('update:field', 'systemPrompt', $event)"
+              @update:model-value="
+                $emit('update:field', 'systemPrompt', $event)
+              "
             />
           </div>
           <div class="editor__field">
@@ -102,7 +104,9 @@
               :model-value="form.userTemplate"
               placeholder="Шаблон пользовательского запроса или подстановок"
               :max-length="1000"
-              @update:model-value="$emit('update:field', 'userTemplate', $event)"
+              @update:model-value="
+                $emit('update:field', 'userTemplate', $event)
+              "
             />
           </div>
           <div class="editor__field">
@@ -130,7 +134,9 @@
               :model-value="form.exampleInput"
               placeholder="Пример входных данных"
               :max-length="500"
-              @update:model-value="$emit('update:field', 'exampleInput', $event)"
+              @update:model-value="
+                $emit('update:field', 'exampleInput', $event)
+              "
             />
           </div>
           <div class="editor__field">
@@ -139,7 +145,9 @@
               :model-value="form.exampleOutput"
               placeholder="Пример ожидаемого ответа"
               :max-length="500"
-              @update:model-value="$emit('update:field', 'exampleOutput', $event)"
+              @update:model-value="
+                $emit('update:field', 'exampleOutput', $event)
+              "
             />
           </div>
         </div>

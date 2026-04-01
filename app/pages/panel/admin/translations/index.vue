@@ -1,30 +1,34 @@
 <template>
-  <section class="translations-page">
-    <ThePanelAdminTranslationsHero
-      :total="translations.length"
-      :visible="filteredTranslations.length"
-    />
+  <section class="translations">
+    <div class="translations__wrapper">
+      <ThePanelAdminTranslationsHero
+        :total="translations.length"
+        :visible="filteredTranslations.length"
+      />
 
-    <ThePanelAdminTranslationsForm
-      :form="form"
-      :submitted="submitted"
-      :is-editing="Boolean(selectedTranslationId)"
-      @reset="resetForm"
-      @save="saveTranslation"
-      @update:field="updateField"
-    />
+      <ThePanelAdminTranslationsForm
+        :form="form"
+        :submitted="submitted"
+        :is-editing="Boolean(selectedTranslationId)"
+        @reset="resetForm"
+        @save="saveTranslation"
+        @update:field="updateField"
+      />
 
-    <ThePanelAdminTranslationsList
-      :translations="filteredTranslations"
-      :search="search"
-      :selected-language="selectedLanguage"
-      :language-options="languageOptions"
-      :selected-translation-id="selectedTranslationId"
-      @update:search="search = $event"
-      @update:language="selectedLanguage = $event"
-      @edit="editTranslation"
-      @remove="removeTranslation"
-    />
+      <ThePanelAdminTranslationsList
+        :translations="filteredTranslations"
+        :search="search"
+        :selected-language="selectedLanguage"
+        :language-options="languageOptions"
+        :selected-translation-id="selectedTranslationId"
+        @update:search="search = $event"
+        @update:language="selectedLanguage = $event"
+        @edit="editTranslation"
+        @remove="removeTranslation"
+      />
+
+      <UiUpToTop class="translations__up" />
+    </div>
   </section>
 </template>
 
@@ -140,7 +144,9 @@ const saveTranslation = () => {
 
   if (selectedTranslationId.value) {
     translations.value = translations.value.map((translation) =>
-      translation.id === selectedTranslationId.value ? { ...translation, ...payload } : translation,
+      translation.id === selectedTranslationId.value
+        ? { ...translation, ...payload }
+        : translation,
     );
   } else {
     translations.value.unshift({ id: Date.now(), ...payload });
@@ -150,15 +156,25 @@ const saveTranslation = () => {
 };
 
 const removeTranslation = (id) => {
-  translations.value = translations.value.filter((translation) => translation.id !== id);
+  translations.value = translations.value.filter(
+    (translation) => translation.id !== id,
+  );
   if (selectedTranslationId.value === id) resetForm();
 };
 </script>
 
 <style lang="scss" scoped>
-.translations-page {
-  display: flex;
-  flex-direction: column;
-  gap: $gap-xl;
+.translations {
+  &__wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-xxl;
+  }
+  &__up {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 50;
+  }
 }
 </style>

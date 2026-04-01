@@ -1,39 +1,41 @@
 <template>
-  <section class="prompts-page">
-    <ThePanelAdminPromptsHero
-      :total="prompts.length"
-      :visible="filteredPrompts.length"
-    />
+  <section class="prompts">
+    <div class="prompts__wrapper">
+      <ThePanelAdminPromptsHero
+        :total="prompts.length"
+        :visible="filteredPrompts.length"
+      />
 
-    <ThePanelAdminPromptsForm
-      :form="form"
-      :submitted="submitted"
-      :is-editing="Boolean(selectedPromptId)"
-      :selected-module="selectedModule"
-      :selected-tone="selectedTone"
-      :module-options="moduleOptions"
-      :tone-options="toneOptions"
-      @reset="resetForm"
-      @remove="removePrompt(selectedPromptId)"
-      @save="savePrompt"
-      @update:field="updateField"
-      @update:module="selectedModule = $event"
-      @update:tone="selectedTone = $event"
-    />
+      <ThePanelAdminPromptsForm
+        :form="form"
+        :submitted="submitted"
+        :is-editing="Boolean(selectedPromptId)"
+        :selected-module="selectedModule"
+        :selected-tone="selectedTone"
+        :module-options="moduleOptions"
+        :tone-options="toneOptions"
+        @reset="resetForm"
+        @remove="removePrompt(selectedPromptId)"
+        @save="savePrompt"
+        @update:field="updateField"
+        @update:module="selectedModule = $event"
+        @update:tone="selectedTone = $event"
+      />
 
-    <ThePanelAdminPromptsList
-      :prompts="filteredPrompts"
-      :search="search"
-      :selected-prompt-id="selectedPromptId"
-      :selected-filter-module="selectedFilterModule"
-      :filter-module-options="filterModuleOptions"
-      @reset="resetForm"
-      @select="editPrompt"
-      @update:search="search = $event"
-      @update:filter-module="selectedFilterModule = $event"
-    />
+      <ThePanelAdminPromptsList
+        :prompts="filteredPrompts"
+        :search="search"
+        :selected-prompt-id="selectedPromptId"
+        :selected-filter-module="selectedFilterModule"
+        :filter-module-options="filterModuleOptions"
+        @reset="resetForm"
+        @select="editPrompt"
+        @update:search="search = $event"
+        @update:filter-module="selectedFilterModule = $event"
+      />
 
-    <UiUpToTop class="prompts-page__up" />
+      <UiUpToTop class="prompts__up" />
+    </div>
   </section>
 </template>
 
@@ -47,7 +49,10 @@ const moduleOptions = [
   { id: 4, value: "moderation", name: "Модерация" },
 ];
 
-const filterModuleOptions = [{ id: 0, value: "all", name: "Все модули" }, ...moduleOptions];
+const filterModuleOptions = [
+  { id: 0, value: "all", name: "Все модули" },
+  ...moduleOptions,
+];
 
 const toneOptions = [
   { id: 1, value: "formal", name: "Формальный" },
@@ -128,7 +133,13 @@ const filteredPrompts = computed(() => {
   return prompts.value.filter((prompt) => {
     const matchesSearch =
       !normalizedSearch ||
-      [prompt.key, prompt.name, prompt.systemPrompt, prompt.userTemplate, prompt.guardrails]
+      [
+        prompt.key,
+        prompt.name,
+        prompt.systemPrompt,
+        prompt.userTemplate,
+        prompt.guardrails,
+      ]
         .join(" ")
         .toLowerCase()
         .includes(normalizedSearch);
@@ -156,9 +167,11 @@ const resetForm = () => {
 const editPrompt = (prompt) => {
   selectedPromptId.value = prompt.id;
   selectedModule.value =
-    moduleOptions.find((option) => option.value === prompt.module) || moduleOptions[0];
+    moduleOptions.find((option) => option.value === prompt.module) ||
+    moduleOptions[0];
   selectedTone.value =
-    toneOptions.find((option) => option.value === prompt.tone) || toneOptions[0];
+    toneOptions.find((option) => option.value === prompt.tone) ||
+    toneOptions[0];
   form.value = {
     key: prompt.key,
     name: prompt.name,
@@ -209,10 +222,12 @@ const removePrompt = (id) => {
 </script>
 
 <style lang="scss" scoped>
-.prompts-page {
-  display: flex;
-  flex-direction: column;
-  gap: $gap-xl;
+.prompts {
+  &__wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-xxl;
+  }
 
   &__up {
     position: fixed;

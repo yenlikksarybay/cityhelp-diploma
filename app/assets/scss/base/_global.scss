@@ -18,11 +18,13 @@
 	& .icon{
 		background-color: $white;
 	}
-	&:hover{
-		background-color: transparent;
-		border: 2px solid $secondary-accent;
-		color: $secondary-accent;
-		font-weight: 500;
+	&--hover{
+		&:hover{
+			background-color: transparent;
+			border: 2px solid $secondary-accent;
+			color: $secondary-accent;
+			font-weight: 500;
+		}
 	}
 }
 
@@ -42,12 +44,14 @@
 	& .icon{
 		background-color: $white;
 	}
-	&:hover{
-		background-color: transparent;
-		border: 1px solid $secondary-accent;
-		background-color: $secondary-accent;
-		color: $white;
-		font-weight: 500;
+	&--hover{
+		&:hover{
+			background-color: transparent;
+			border: 1px solid $secondary-accent;
+			background-color: $secondary-accent;
+			color: $white;
+			font-weight: 500;
+		}
 	}
 }
 
@@ -67,13 +71,15 @@
 	& .icon{
 		background-color: $white;
 	}
-	// &:hover{
-	// 	background-color: transparent;
-	// 	border: 1px solid $secondary-accent;
-	// 	background-color: $secondary-accent;
-	// 	color: $white;
-	// 	font-weight: 500;
-	// }
+}
+
+//Hidden
+.hidden{
+	visibility: hidden;
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
 }
 
 // Title

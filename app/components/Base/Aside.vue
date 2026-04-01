@@ -15,10 +15,10 @@
               'aside__li--end': !asideStore.isOpen || asideStore.isMobileOpen,
             }"
           >
-            <!-- <UiLocale
+            <UiLocale
               v-if="!asideStore.isOpen || asideStore.isMobileOpen"
               class="aside__locale"
-            /> -->
+            />
             <div></div>
             <UiIcon
               class="aside__icon"
