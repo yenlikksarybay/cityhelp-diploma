@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@nuxt/image', '@pinia/nuxt', 'nuxt-swiper'],
+  modules: ['@nuxt/image', '@pinia/nuxt', 'nuxt-swiper', '@nuxtjs/i18n'],
 	plugins: ["~/plugins/maska.js", "~/plugins/sms-code.client.js"],
 
 	css: ['@/assets/scss/index.scss'],
@@ -20,6 +20,16 @@ export default defineNuxtConfig({
         },
       ],
     },
+  },
+
+	i18n: {
+		defaultLocale: 'kz',
+		locales: [
+      { code: 'ru', name: 'Ru', file: 'ru.json', flag: "https://cityhelp-diploma-yij7.vercel.app/assets/images/content/ru-flag.png" },
+      { code: 'kz', name: 'Kz', file: 'kz.json', flag: "https://cityhelp-diploma-yij7.vercel.app/assets/images/content/kz-flag.png" },
+      { code: 'en', name: 'En', file: 'en.json', flag: "https://cityhelp-diploma-yij7.vercel.app/assets/images/content/en-flag.png" },
+    ],
+		vueI18n: "./i18n.config.ts",
   },
 
 	vite: {

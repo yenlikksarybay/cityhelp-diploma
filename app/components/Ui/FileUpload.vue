@@ -72,7 +72,7 @@ const props = defineProps({
   },
   maxSizeMb: {
     type: Number,
-    default: 10,
+    default: 4.5,
   },
 });
 

@@ -15,7 +15,7 @@
       </div>
 
       <div class="header__info">
-        <!-- <UiLocale class="header__locale" /> -->
+        <UiLocale class="header__locale" />
 
         <TheHeaderProfile />
 
