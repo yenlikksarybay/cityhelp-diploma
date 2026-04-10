@@ -47,13 +47,13 @@ export default defineNuxtConfig({
   },
 
 	runtimeConfig: {
-		mongodbUri: "",
-		mongodbUser: "",
-		mongodbPassword: "",
+		mongodbUri: "mongodb+srv://norem_db_user:RZnTozTKdjeYkV8o@cluster0.05vl93a.mongodb.net/?appName=Cluster0",
+		mongodbUser: "norem_db_user",
+		mongodbPassword: "RZnTozTKdjeYkV8o",
 		mongodbHost: "127.0.0.1:27017",
 		mongodbDatabase: "cityhelp",
 		serverPort: "",
-		geminiApiKey: "",
+		geminiApiKey: "AIzaSyAwc9C3Df-w_4NiTa-yd_M1jQ5Y5YaUGUY",
 		geminiModel: "gemini-1.5-flash",
 		public: {
 			baseURL: "/api",

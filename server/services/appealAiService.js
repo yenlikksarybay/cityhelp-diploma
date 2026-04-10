@@ -2,6 +2,7 @@ import { PromptModel } from "../models/Prompt.js";
 import { AppealModel } from "../models/Appeal.js";
 import { UserModel } from "../models/User.js";
 import { geminiService } from "./geminiService.js";
+import { APPEAL_STATUSES, APPEAL_PRIORITIES } from "../constants/appeal.js";
 
 const ANALYSIS_PROMPT_KEYS = [
 	"appeal_create_analysis_core",
@@ -199,6 +200,15 @@ export const appealAiService = {
 					location: payload.location,
 				}),
 				...result.json,
+				priority: APPEAL_PRIORITIES[String(result.json.priority || "").toLowerCase()]
+					? String(result.json.priority).toLowerCase()
+					: fallbackAnalysis({
+							description: payload.description,
+							location: payload.location,
+					  }).priority,
+				status: APPEAL_STATUSES[String(result.json.status || "").toLowerCase()]
+					? String(result.json.status).toLowerCase()
+					: "moderation",
 				deadlineDate: /^\d{4}-\d{2}-\d{2}$/.test(deadlineDate)
 					? deadlineDate
 					: fallbackAnalysis({

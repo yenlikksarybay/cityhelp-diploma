@@ -55,6 +55,11 @@ const asideStore = useAsideStore();
 const api = useApi();
 useSeo({ title: "Главная" });
 
+definePageMeta({
+  layout: "default",
+  middlewares: ["auth"],
+});
+
 const dashboardMeta = ref({
   role: "",
   scopeLabel: "все",

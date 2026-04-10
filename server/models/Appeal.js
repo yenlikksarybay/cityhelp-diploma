@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { APPEAL_PRIORITIES, APPEAL_STATUSES } from "../constants/appeal.js";
 
 const imageSchema = new mongoose.Schema(
 	{
@@ -64,11 +65,13 @@ const appealSchema = new mongoose.Schema(
 		},
 		priority: {
 			type: String,
+			enum: Object.keys(APPEAL_PRIORITIES),
 			default: "medium",
 			index: true,
 		},
 		status: {
 			type: String,
+			enum: Object.keys(APPEAL_STATUSES),
 			default: "new",
 			index: true,
 		},
