@@ -4,7 +4,7 @@
       <table class="table__table">
         <thead class="table__head">
           <tr class="table__row">
-            <th class="table__cell table__cell--head">ID</th>
+            <th class="table__cell table__cell--head">№</th>
             <th class="table__cell table__cell--head">
               {{ "ФИО" }}
             </th>
@@ -22,10 +22,10 @@
             </th>
           </tr>
         </thead>
-        <tbody class="table__body" v-if="students.length">
-          <tr class="table__row" v-for="(row, index) in students" :key="row.id">
+        <tbody class="table__body" v-if="rows.length">
+          <tr class="table__row" v-for="(row, index) in rows" :key="row.id">
             <td class="table__cell table__cell--topic">
-              {{ row.id }}
+              {{ index + 1 }}
             </td>
             <td class="table__cell">
               <p>{{ row.name }}</p>
@@ -40,7 +40,7 @@
               {{ row.user_appeals_count }}
             </td>
             <td class="table__cell">
-              {{ formatDateToDots(row.created_at) || "?" }}
+              {{ formatDateToDots(row.createdAt) || "?" }}
             </td>
           </tr>
         </tbody>
@@ -50,16 +50,16 @@
 </template>
 
 <script setup>
-const students = [
-  {
-    id: 1,
-    name: "Иванов Иван Иванович",
-    phone: "+77475893180",
-    email: "test@cityhelp.com",
-    user_appeals_count: 0,
-    created_at: "2024-01-01T00:00:00.000Z",
+defineProps({
+  rows: {
+    type: Array,
+    default: () => [],
   },
-];
+  isLoading: {
+    type: Boolean,
+    default: false,
+  },
+});
 </script>
 
 <style lang="scss" scoped>

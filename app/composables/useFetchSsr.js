@@ -34,7 +34,10 @@ export async function useFetchSsr(options = {}) {
 	} catch (error) {
 		loaderStore.setLoader(false)
 		console.log(error)
-		if (error?.statusCode === 401 || error?.data?.message === "Unauthenticated") {
+		if (
+			error?.statusCode === 401 ||
+			error?.data?.message === "Не авторизован"
+		) {
 			authStore.logout({ type: 'local' })
 		}
 		throw error;

@@ -22,7 +22,8 @@
       <UiButton
         class="login__btn primary-btn"
         label="Войти"
-        @click="checkLogin"
+        :is-loading="isLoading"
+        @action="checkLogin"
       />
     </div>
   </form>
@@ -32,12 +33,40 @@
 const authStore = useAuthStore();
 const email = ref(null);
 const password = ref(null);
+const isLoading = ref(false);
 
-const router = useRouter();
+const checkLogin = async () => {
+  if (!email.value || !password.value) {
+    useNotify({
+      title: "Ошибка",
+      text: "Введите email и пароль",
+      status: "error",
+    });
+    return;
+  }
 
-const checkLogin = () => {
-  authStore.setAuthModal(false);
-  router.push("/panel");
+  try {
+    isLoading.value = true;
+    const res = await useApi().client({
+      url: "/auth/login",
+      method: "post",
+      body: { email: email.value, password: password.value },
+    });
+
+    await authStore.setToken(res?.data?.token, "/panel");
+    authStore.setAuthModal(false);
+  } catch (error) {
+    useNotify({
+      title: "Не удалось войти",
+      text:
+        error._data?.statusMessage ||
+        error._data?.message ||
+        "Проверьте email и пароль",
+      status: "error",
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 

@@ -7,14 +7,16 @@
         src=""
         alt="Daryn Bagdar User"
       />
-      <div v-else class="profile__avatar profile__avatar--default">Y</div>
+      <div v-else class="profile__avatar profile__avatar--default">
+        {{ user.name?.trim().split(" ")[0].charAt(0) || "" }}
+      </div>
 
       <div class="profile__user">
-        <p class="profile__name">{{ user.name }} Yenlik</p>
+        <p class="profile__name">{{ user.name }}</p>
         <p class="profile__name profile__name--mobile">
           {{ user.name?.trim().split(" ")[0] || "" }}
         </p>
-        <p class="profile__role">Superadmin</p>
+        <p class="profile__role">{{ user.role }}</p>
       </div>
 
       <transition name="profile-nav">

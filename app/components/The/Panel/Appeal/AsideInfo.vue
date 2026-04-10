@@ -25,40 +25,109 @@
 </template>
 
 <script setup>
-useSeo({ title: "Обращение 2" });
+const props = defineProps({
+  appeal: {
+    type: Object,
+    default: null,
+  },
+});
 
-const lists = [
+const formatDate = (value) => {
+  if (!value) return "—";
+  return formatDateToDots(value) || "—";
+};
+
+const statusText = (status) => {
+  switch (status) {
+    case "completed":
+      return "Завершено";
+    case "rated":
+      return "Оценено";
+    case "processing":
+      return "В работе";
+    case "needs_revision":
+      return "Нужна доработка";
+    case "rejected":
+      return "Отклонено";
+    case "moderation":
+      return "На модерации";
+    default:
+      return "Новое";
+  }
+};
+
+const priorityText = (priority) => {
+  switch (priority) {
+    case "urgent":
+      return "Срочный";
+    case "high":
+      return "Высокий";
+    case "low":
+      return "Низкий";
+    default:
+      return "Средний";
+  }
+};
+
+const lists = computed(() => [
   {
     key: "От пользователя:",
-    value: "Yenlik Sarybay",
+    value:
+      props.appeal?.user?.name ||
+      [props.appeal?.user?.firstName, props.appeal?.user?.lastName]
+        .filter(Boolean)
+        .join(" ") ||
+      "—",
   },
   {
     key: "Местоположение:",
-    value: "Көктем 3",
+    value:
+      props.appeal?.location?.label || props.appeal?.location?.address || "—",
   },
   {
     key: "Категория:",
-    value: "Служба городского управления",
+    value: props.appeal?.category || "—",
+  },
+  {
+    key: "Сотрудник:",
+    value:
+      props.appeal?.employeeName ||
+      props.appeal?.assignedEmployee?.name ||
+      [
+        props.appeal?.assignedEmployee?.firstName,
+        props.appeal?.assignedEmployee?.lastName,
+      ]
+        .filter(Boolean)
+        .join(" ") ||
+      "—",
   },
   {
     key: "Статус:",
-    value: "",
-    status: "pending",
+    value: statusText(props.appeal?.status),
+    status:
+      props.appeal?.status === "completed" || props.appeal?.status === "rated"
+        ? "solved"
+        : props.appeal?.status === "rejected"
+          ? "rejected"
+          : "pending",
   },
   {
-    key: "Проритетность:",
-    value: "Высокая",
-    level: "rejected",
+    key: "Приоритетность:",
+    value: priorityText(props.appeal?.priority),
+    level:
+      props.appeal?.priority === "urgent" || props.appeal?.priority === "high"
+        ? "rejected"
+        : "pending",
   },
   {
-    key: "Дата создание:",
-    value: "11.3.2026",
+    key: "Дата создания:",
+    value: formatDate(props.appeal?.createdAt),
   },
   {
-    key: "Дата закрытия:",
-    value: "11.3.2026",
+    key: "Дедлайн:",
+    value: formatDate(props.appeal?.deadlineAt),
   },
-];
+]);
 </script>
 
 <style lang="scss" scoped>

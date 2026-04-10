@@ -4,7 +4,7 @@
       <h2 class="create__title title-md">Пройдите все шаги</h2>
 
       <ThePanelCreateAppealUploadImage
-        v-model="file"
+        v-model="files"
         :is-error="error.stepOne"
       />
 
@@ -30,7 +30,8 @@
 
       <UiButton
         class="create__btn primary-btn"
-        label="Создать обращение"
+        :label="isSubmitting ? 'Создание...' : 'Создать обращение'"
+        :disabled="isSubmitting"
         @action="postAppeal"
       />
     </div>
@@ -39,11 +40,13 @@
 
 <script setup>
 const router = useRouter();
+const api = useApi();
 useSeo({ title: "Создать обращение" });
 
-const file = ref(null);
+const files = ref([]);
 const comment = ref("");
 const map = ref(null);
+const isSubmitting = ref(false);
 
 const error = ref({
   stepOne: false,
@@ -51,18 +54,43 @@ const error = ref({
   stepThree: false,
 });
 
-const postAppeal = () => {
-  if (file.value && comment.value > 50 && map.value) {
-    useNotify({
-      title: "Создание обращения",
-      text: "Обращение создано",
-      status: "success",
-    });
+const uploadImage = async () => {
+  return await Promise.all(
+    files.value.map(async (item) => {
+      const formData = new FormData();
+      formData.append("file", item.file);
 
-    router.push("/panel/user/my-appeals");
-  }
+      const response = await api.client({
+        url: "/blob/upload",
+        method: "post",
+        body: formData,
+      });
 
-  if (!file.value) {
+      const data = response?.data || response;
+
+      return {
+        url: data?.url,
+        pathname: data?.pathname || "",
+        name: item.name || "",
+        type: item.file?.type || "",
+        size: item.file?.size || 0,
+      };
+    }),
+  );
+};
+
+const revokePreviewUrls = () => {
+  files.value.forEach((item) => {
+    if (item?.preview) {
+      URL.revokeObjectURL(item.preview);
+    }
+  });
+};
+
+const postAppeal = async () => {
+  if (isSubmitting.value) return;
+
+  if (!files.value.length) {
     setTimeout(() => {
       useNotify({
         title: "Шаг 1",
@@ -72,11 +100,11 @@ const postAppeal = () => {
       error.value.stepOne = true;
     }, 0);
   }
-  if (comment.value?.length < 50) {
+  if (comment.value?.length < 20) {
     setTimeout(() => {
       useNotify({
         title: "Шаг 2",
-        text: "Минимум 50 символов",
+        text: "Минимум 20 символов",
         status: "error",
       });
       error.value.stepTwo = true;
@@ -92,13 +120,53 @@ const postAppeal = () => {
       error.value.stepThree = true;
     }, 100);
   }
+
+  isSubmitting.value = true;
+
+  try {
+    const uploaded = await uploadImage();
+
+    await api.client({
+      url: "/appeals",
+      method: "post",
+      body: {
+        description: comment.value,
+        location: map.value,
+        photos: uploaded,
+      },
+    });
+
+    useNotify({
+      title: "Создание обращения",
+      text: "Обращение создано",
+      status: "success",
+    });
+
+    revokePreviewUrls();
+    files.value = [];
+    comment.value = "";
+    map.value = null;
+    router.push("/panel/user/my-appeals");
+  } catch (error) {
+    useNotify({
+      title: "Ошибка",
+      text:
+        error?.statusMessage ||
+        error?.data?.statusMessage ||
+        "Не удалось создать обращение",
+      status: "error",
+    });
+  } finally {
+    isSubmitting.value = false;
+  }
 };
 
 watch(
-  () => file.value,
+  () => files.value,
   () => {
     error.value.stepOne = false;
   },
+  { deep: true },
 );
 
 watch(

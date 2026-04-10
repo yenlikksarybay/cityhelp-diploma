@@ -3,43 +3,60 @@
     <div class="content__wrapper">
       <div class="content__comment">
         <h3 class="content__title title-md title-point">Комментарий</h3>
-        <p class="content__description">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Optio
-          quibusdam vero, provident obcaecati amet veritatis! Aspernatur illum
-          tempora sit eligendi ut maiores dignissimos ipsam velit! Consequatur
-          consequuntur sit, accusantium nulla architecto praesentium animi,
-          maiores laboriosam quo nam laudantium tenetur asperiores ex debitis
-          cum optio enim et corporis commodi voluptatibus ratione.
-        </p>
+        <p class="content__description">{{ appeal?.description || "—" }}</p>
       </div>
 
       <div class="content__images">
         <h3 class="content__title title-md title-point">Изображения</h3>
-        <UiSwiper
-          :loop="false"
-          :pagination="true"
-          prev-btn-class=".preview__arrow--prev"
-          next-btn-class=".preview__arrow--next"
-        >
-          <swiper-slide v-for="item in 5" :key="item">
-            <img v-if="false" class="content__image" src="" alt="Photo" />
-            <div class="content__image"><UiLoadImage /></div>
+        <UiSwiper v-if="appeal?.photos?.length">
+          <swiper-slide v-for="item in appeal.photos" :key="item.url">
+            <img class="content__image" :src="item.url" :alt="item.name || 'Photo'" />
           </swiper-slide>
-          <swiper-slide class="content__slide">
-            <UiComminutyQR />
+        </UiSwiper>
+        <div v-else class="content__empty">
+          <UiLoadImage />
+        </div>
+      </div>
+
+      <div v-if="appeal?.fixedImages?.length" class="content__images">
+        <h3 class="content__title title-md title-point">Фото результата</h3>
+        <UiSwiper>
+          <swiper-slide v-for="item in appeal.fixedImages" :key="item.url">
+            <img class="content__image" :src="item.url" :alt="item.name || 'Result photo'" />
           </swiper-slide>
         </UiSwiper>
       </div>
 
       <section class="content__map">
         <h3 class="content__title title-md title-point">Место на карте</h3>
-        <UiMap class="content__location" />
+        <UiMap
+          v-if="appeal?.location"
+          class="content__location"
+          :x="appeal.location.x"
+          :y="appeal.location.y"
+        />
+      </section>
+
+      <section v-if="appeal?.fixedLocation" class="content__map">
+        <h3 class="content__title title-md title-point">Место после выполнения</h3>
+        <UiMap
+          class="content__location"
+          :x="appeal.fixedLocation.x"
+          :y="appeal.fixedLocation.y"
+        />
       </section>
     </div>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+defineProps({
+  appeal: {
+    type: Object,
+    default: null,
+  },
+});
+</script>
 
 <style lang="scss" scoped>
 .content {
@@ -60,6 +77,15 @@
   &__image {
     width: 100%;
     height: 500px;
+    background-color: $surface-100;
+    border-radius: $border-r-md;
+    object-fit: cover;
+  }
+  &__empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
     background-color: $surface-100;
     border-radius: $border-r-md;
   }

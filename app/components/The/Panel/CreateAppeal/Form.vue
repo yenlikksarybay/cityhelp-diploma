@@ -3,7 +3,7 @@
     <div class="form__wrapper" :class="{ 'form__wrapper--error': isError }">
       <p class="form__number">Шаг 2</p>
       <h3 class="form__title title-sm">Ваш комментарий *</h3>
-      <p class="form__text">(Минимум 50 символов)</p>
+      <p class="form__text">(Минимум 20 символов)</p>
       <UiTextarea class="form__textarea" v-model="textarea" />
     </div>
   </section>
@@ -15,15 +15,12 @@ const props = defineProps({
   isError: Boolean,
 });
 
-const textarea = ref("");
-
 const emit = defineEmits(["update:modelValue"]);
-watch(
-  () => textarea.value,
-  (value) => {
-    emit("update:modelValue", value);
-  },
-);
+
+const textarea = computed({
+  get: () => props.modelValue || "",
+  set: (value) => emit("update:modelValue", value),
+});
 </script>
 
 <style lang="scss" scoped>

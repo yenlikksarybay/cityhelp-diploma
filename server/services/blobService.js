@@ -5,7 +5,7 @@ import { buildBlobPath } from "../utils/blobPath.js";
 const MAX_FILE_SIZE = 4.5 * 1024 * 1024;
 
 const getBlobFolder = () => {
-	return process.env.BLOB_UPLOAD_FOLDER || "cityhelp";
+	return process.env.BLOB_UPLOAD_FOLDER || "cityhelp/appeals/images";
 };
 
 export const blobService = {

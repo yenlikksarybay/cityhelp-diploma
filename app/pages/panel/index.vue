@@ -1,7 +1,13 @@
 <template>
   <section class="main">
     <div class="main__wrapper">
-      <h2 class="main__title title-md">Общие данные</h2>
+      <div class="main__header">
+        <h2 class="main__title title-md">Общие данные</h2>
+        <p class="main__subtitle">
+          Сводка по всем обращениям, тепловая карта и последние записи
+        </p>
+      </div>
+
       <div
         class="main__boards"
         :class="{ 'main__boards--aside': !asideStore.isOpen }"
@@ -13,15 +19,32 @@
         />
       </div>
 
-      <h2 class="main__title title-md">Тепловая карта</h2>
-      <UiHeatmap :points="heatmapPoints" />
+      <div class="main__section">
+        <div class="main__section-head">
+          <h2 class="main__title title-md">Тепловая карта</h2>
+          <p class="main__subtitle">
+            {{ heatmapPoints.length }} точек из доступных обращений
+          </p>
+        </div>
+        <UiHeatmap :points="heatmapPoints" />
+      </div>
 
-      <h3 class="main__title title-md">Все обращений (45)</h3>
-      <div
-        class="main__cards"
-        :class="{ 'main__cards--aside': !asideStore.isOpen }"
-      >
-        <ThePanelMainCard v-for="card in 10" :key="card" />
+      <div class="main__section">
+        <div class="main__section-head">
+          <h3 class="main__title title-md">
+            Последние обращения ({{ dashboardAppeals.length }})
+          </h3>
+        </div>
+        <div
+          class="main__cards"
+          :class="{ 'main__cards--aside': !asideStore.isOpen }"
+        >
+          <ThePanelMainCard
+            v-for="card in dashboardAppeals"
+            :key="card.id"
+            :card="card"
+          />
+        </div>
       </div>
     </div>
   </section>
@@ -29,13 +52,27 @@
 
 <script setup>
 const asideStore = useAsideStore();
+const api = useApi();
 useSeo({ title: "Главная" });
 
-const infoBoards = [
+const dashboardMeta = ref({
+  role: "",
+  scopeLabel: "все",
+  total: 0,
+  completed: 0,
+  active: 0,
+  rejected: 0,
+  statusCounts: {},
+});
+
+const heatmapPoints = ref([]);
+const dashboardAppeals = ref([]);
+
+const buildBoards = (summary) => [
   {
     id: 1,
-    name: "Общие колличество обращений",
-    text: 1040,
+    name: "Общее количество обращений",
+    text: summary.total,
     icon: "circle-i",
     iconColor: "blue-500",
     bgColor: "",
@@ -44,8 +81,8 @@ const infoBoards = [
   },
   {
     id: 2,
-    name: "Выполненные обращений",
-    text: 345,
+    name: "Выполненные обращения",
+    text: summary.completed,
     icon: "checkmark-i",
     iconColor: "green-500",
     bgColor: "",
@@ -54,8 +91,8 @@ const infoBoards = [
   },
   {
     id: 3,
-    name: "Ожидающие обращений",
-    text: 345,
+    name: "В работе",
+    text: summary.active,
     icon: "time-i",
     iconColor: "yellow-400",
     bgColor: "",
@@ -64,8 +101,8 @@ const infoBoards = [
   },
   {
     id: 4,
-    name: "Отклоненные обращений",
-    text: 1040,
+    name: "Отклоненные обращения",
+    text: summary.rejected,
     icon: "close",
     iconColor: "red-300",
     bgColor: "",
@@ -74,41 +111,82 @@ const infoBoards = [
   },
 ];
 
-const heatmapPoints = [
-  [43.238949, 76.889709],
-  [43.238949, 76.889709],
-  [43.23925, 76.8911],
-  [43.2398, 76.8922],
-  [43.2402, 76.8931],
-  [43.2402, 76.8931],
-  [43.241, 76.8919],
-  [43.2424, 76.895],
-  [43.2442, 76.8991],
-  [43.2451, 76.9015],
-  [43.2299, 76.8784],
-  [43.2304, 76.8793],
-  [43.2311, 76.8805],
-  [43.232, 76.8817],
-  [43.2334, 76.8831],
-  [43.2334, 76.8831],
-  [43.2501, 76.9284],
-  [43.2507, 76.9294],
-  [43.2512, 76.9302],
-  [43.252, 76.9316],
-  [43.2531, 76.9324],
-  [43.2531, 76.9324],
-  [43.2168, 76.8482],
-  [43.2174, 76.8493],
-  [43.2182, 76.8501],
-  [43.2191, 76.8512],
-  [43.2205, 76.8526],
-  [43.2205, 76.8526],
-  [43.2744, 76.9408],
-  [43.2751, 76.9419],
-  [43.2762, 76.9432],
-  [43.2771, 76.9444],
-  [43.278, 76.9456],
-];
+const infoBoards = computed(() => buildBoards(dashboardMeta.value));
+
+const normalizeSummary = (payload) => ({
+  role: payload?.role || "",
+  scopeLabel: payload?.label || "все",
+  total: payload?.total || 0,
+  completed: payload?.completed || 0,
+  active: payload?.active || 0,
+  rejected: payload?.rejected || 0,
+  statusCounts: payload?.statusCounts || {},
+});
+
+const normalizeDashboardAppeal = (appeal) => ({
+  id: appeal.id,
+  description: appeal.description || "",
+  category: appeal.category || "",
+  priority: appeal.priority || "medium",
+  status: appeal.status || "new",
+  location: appeal.location || {},
+  photos: appeal.photos || [],
+  createdAt: appeal.createdAt,
+  deadlineAt: appeal.deadlineAt,
+  assignedEmployee: appeal.assignedEmployee || null,
+});
+
+const loadDashboard = async () => {
+  const [summaryResponse, heatmapResponse, appealsResponse] = await Promise.all(
+    [
+      api.client({ url: "/dashboard/summary", method: "get" }),
+      api.client({ url: "/dashboard/heatmap", method: "get" }),
+      api.client({
+        url: "/dashboard/appeals",
+        method: "get",
+        params: { limit: 9 },
+      }),
+    ],
+  );
+
+  dashboardMeta.value = normalizeSummary(
+    summaryResponse?.data || summaryResponse || {},
+  );
+  heatmapPoints.value = (heatmapResponse?.data || heatmapResponse || []).map(
+    (point) => [Number(point?.[0]), Number(point?.[1])],
+  );
+  dashboardAppeals.value = (appealsResponse?.data || appealsResponse || []).map(
+    normalizeDashboardAppeal,
+  );
+};
+
+const initialSummary = await useFetchSsr({
+  url: "/dashboard/summary",
+  method: "get",
+});
+
+const initialHeatmap = await useFetchSsr({
+  url: "/dashboard/heatmap",
+  method: "get",
+});
+
+const initialAppeals = await useFetchSsr({
+  url: "/dashboard/appeals",
+  method: "get",
+  params: { limit: 9 },
+});
+
+dashboardMeta.value = normalizeSummary(
+  initialSummary?.data || initialSummary || {},
+);
+heatmapPoints.value = (initialHeatmap?.data || initialHeatmap || []).map(
+  (point) => [Number(point?.[0]), Number(point?.[1])],
+);
+dashboardAppeals.value = (initialAppeals?.data || initialAppeals || []).map(
+  normalizeDashboardAppeal,
+);
+
+onMounted(loadDashboard);
 </script>
 
 <style lang="scss" scoped>
@@ -117,6 +195,21 @@ const heatmapPoints = [
     display: flex;
     flex-direction: column;
     gap: $gap-xxl;
+  }
+  &__header,
+  &__section-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  &__subtitle {
+    color: $surface-500;
+    font-size: 14px;
+  }
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-md;
   }
   &__boards {
     display: grid;
@@ -132,11 +225,11 @@ const heatmapPoints = [
 
 @media (max-width: 1200px) {
   .main {
-    &__boards,
-    &__cards {
-      &--aside {
-        grid-template-columns: repeat(2, 1fr);
-      }
+    &__boards--aside {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    &__cards--aside {
+      grid-template-columns: repeat(2, 1fr);
     }
   }
 }

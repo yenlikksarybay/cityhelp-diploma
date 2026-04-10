@@ -19,15 +19,17 @@ export async function useFetchClient(options = {}) {
 			headers,
 		});
 
-		const data = response
-
-		return data;
+		return response;
 
 	} catch (error) {
-		console.log(error.response)
 		if (error?.response?.status === 401) {
 			authStore.logout({ type: 'local' })
 		}
-		throw error.response;
+		const normalizedError = error?.response || {
+			statusCode: error?.status || 500,
+			statusMessage: error?.statusMessage || error?.message || "Ошибка запроса",
+			data: error?.data || {},
+		}
+		throw normalizedError;
 	}
 };

@@ -13,10 +13,9 @@ export const useAuthStore = defineStore('auth', () => {
 
 	const setUser = async (path) => {
 		try {
-			await useApi().client({ url: '/profile', method: 'get' }).then(res => {
-				user.value = res
-				if (path) { router.push(path) }
-			})
+			const res = await useApi().client({ url: '/profile', method: 'get' })
+			user.value = res?.data || res
+			if (path) { router.push(path) }
 		} catch (err) {
 			logout({ type: 'local' })
 			router.push('/')

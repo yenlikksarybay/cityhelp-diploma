@@ -1,20 +1,23 @@
 <template>
   <section class="card">
-    <nuxt-link to="/panel/appeal/1" class="card__wrapper">
-      <UiLoadImage class="card__image" />
+    <nuxt-link :to="`/panel/appeal/${card.id}`" class="card__wrapper">
+      <img
+        v-if="card.photos?.[0]?.url"
+        :src="card.photos[0].url"
+        class="card__image"
+        :alt="card.description"
+      />
+      <UiLoadImage v-else class="card__image" />
 
-      <UiStatus text="Отказано" status="pending" class="card__status" />
+      <UiStatus :text="statusText(card.status)" :status="normalizeUiStatus(card.status)" class="card__status" />
 
       <div class="card__content">
-        <h4 class="card__title title-sm">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid,
-          fugiat?
-        </h4>
+        <h4 class="card__title title-sm">{{ card.description }}</h4>
         <ul class="card__ul">
           <li class="card__li" v-for="list in lists" :key="list.id">
             <UiIcon :icon="list.icon" size="size-20" />
             <p class="card__li-text">
-              {{ list.name }}
+              {{ list.name(card) }}
             </p>
           </li>
         </ul>
@@ -24,18 +27,68 @@
 </template>
 
 <script setup>
+const props = defineProps({
+  card: {
+    type: Object,
+    required: true,
+  },
+});
+
 const lists = [
   {
     id: 1,
-    name: "Назарбаева 22a",
+    name: (card) => card.location?.address || card.location?.label || "Без адреса",
     icon: "location-i",
   },
   {
-    id: 1,
-    name: "Высокий проритет",
+    id: 2,
+    name: (card) => priorityText(card.priority),
     icon: "status-i",
   },
 ];
+
+const priorityText = (priority) => {
+  switch (priority) {
+    case "urgent":
+      return "Срочный приоритет";
+    case "high":
+      return "Высокий приоритет";
+    case "low":
+      return "Низкий приоритет";
+    default:
+      return "Средний приоритет";
+  }
+};
+
+const statusText = (status) => {
+  switch (status) {
+    case "completed":
+      return "Завершено";
+    case "rated":
+      return "Оценено";
+    case "processing":
+      return "В работе";
+    case "needs_revision":
+      return "Нужна доработка";
+    case "rejected":
+      return "Отклонено";
+    case "moderation":
+    default:
+      return "На модерации";
+  }
+};
+
+const normalizeUiStatus = (status) => {
+  switch (status) {
+    case "completed":
+    case "rated":
+      return "solved";
+    case "rejected":
+      return "rejected";
+    default:
+      return "pending";
+  }
+};
 </script>
 
 <style lang="scss" scoped>

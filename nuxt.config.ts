@@ -53,9 +53,11 @@ export default defineNuxtConfig({
 		mongodbHost: "127.0.0.1:27017",
 		mongodbDatabase: "cityhelp",
 		serverPort: "",
-    public: {
-        baseURL: ""
-    }
+		geminiApiKey: "",
+		geminiModel: "gemini-1.5-flash",
+		public: {
+			baseURL: "/api",
+		},
 	},
 
   devtools: { enabled: true },

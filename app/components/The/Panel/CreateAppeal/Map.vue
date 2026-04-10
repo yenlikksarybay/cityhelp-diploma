@@ -3,21 +3,33 @@
     <div class="map__wrapper" :class="{ 'map__wrapper--error': isError }">
       <p class="map__number">Шаг 3</p>
       <h3 class="map__title title-sm">Укажите место на карте *</h3>
-      <UiMap />
+
+      <UiMap
+        v-model="selectedPoint"
+        :selectable="true"
+        marker-text="Место обращения"
+      />
     </div>
   </section>
 </template>
 
 <script setup>
-const map = ref(null);
-
 const emit = defineEmits(["update:modelValue"]);
+
 const props = defineProps({
   modelValue: {
     type: Object,
-    default: () => ({}),
+    default: null,
   },
-  isError: Boolean,
+  isError: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const selectedPoint = computed({
+  get: () => props.modelValue,
+  set: (value) => emit("update:modelValue", value),
 });
 </script>
 
@@ -32,17 +44,17 @@ const props = defineProps({
     border: 2px solid $secondary-accent;
     padding: $padding-xxl $padding-md $padding-md $padding-md;
     box-shadow: $box-shadow;
+
     &--error {
       border: 2px solid $red-300;
     }
   }
+
   &__number {
     position: absolute;
     top: -20px;
     font-size: 20px;
     background-color: $secondary-accent;
-    // width: 60px;
-    // height: 60px;
     display: flex;
     justify-content: center;
     align-items: center;

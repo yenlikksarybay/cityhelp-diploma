@@ -10,7 +10,7 @@
               {{ "Категория" }}
             </th>
             <th class="table__cell table__cell--head">
-              {{ "Проритет" }}
+              {{ "Приоритет" }}
             </th>
             <th class="table__cell table__cell--head">
               {{ "Дедлайн" }}
@@ -29,44 +29,48 @@
             </th>
           </tr>
         </thead>
-        <tbody class="table__body" v-if="students.length">
-          <tr class="table__row" v-for="(row, index) in students" :key="row.id">
+        <tbody class="table__body" v-if="rows.length">
+          <tr class="table__row" v-for="row in rows" :key="row.id">
             <td class="table__cell table__cell--first">
               {{ row.description }}
             </td>
             <td class="table__cell">
-              <div v-if="row.preview || true">
+              <button
+                v-if="row.photos?.length"
+                type="button"
+                class="table__preview-btn"
+                @click="openPreview(row)"
+              >
                 <img
-                  @click="openPreview"
                   class="table__preview"
-                  src="https://yastatic.net/naydex/yandex-search/1TLRG7322/ead043Sb/t-dsrVqNqNlf6m5zwI3gdIyq4T98ht7zek4YO9BdzZzz8Qkx8cGPwbHHBd0wKbmmGdNabzukPUavS8uts-AgKnfmGSxeSdyYqn9qwgXNYETcizTrTZcbUz-fvB4V3O08c7FpglIGmPancHbf9x4uMm03DpveNI1Ta9ouOYADw"
-                  alt="Preview"
+                  :src="row.photos[0].url"
+                  :alt="row.description || 'Изображение обращения'"
                 />
-              </div>
+              </button>
               <UiIcon v-else icon="close" />
             </td>
             <td class="table__cell">
               <p>{{ row.category }}</p>
             </td>
             <td class="table__cell">
-              <UiStatusText status="rejected" :text="row.priority" />
+              <UiStatusText :status="normalizeUiStatus(row.priority)" :text="priorityText(row.priority)" />
             </td>
             <td class="table__cell">
-              {{ row.deadline }}
+              {{ formatDateToDots(row.deadlineAt) || "?" }}
             </td>
             <td class="table__cell">
-              {{ formatDateToDots(row.created_at) || "?" }}
+              {{ formatDateToDots(row.createdAt) || "?" }}
             </td>
             <td class="table__cell">
-              {{ row.employee }}
+              {{ row.assignedEmployee?.name || row.employeeName || "Не назначен" }}
             </td>
             <td class="table__cell">
-              <UiStatus :status="row.status" :text="row.status" />
+              <UiStatus :status="normalizeUiStatus(row.status)" :text="statusText(row.status)" />
             </td>
             <td class="table__cell">
               <UiButton
                 tag="a"
-                :href="`/panel/appeal/1`"
+                :href="`/panel/appeal/${row.id}`"
                 label="Детально"
                 class="secondary-btn"
               />
@@ -77,43 +81,76 @@
     </div>
   </div>
 
-  <UiModal
-    :is-open="isOpenPreview"
-    max-width="750px"
-    @close="closePreview"
-    :borderless="true"
-  >
-    <ModalsPreviewImage
-      :images="[
-        'https://yastatic.net/naydex/yandex-search/1TLRG7322/ead043Sb/t-dsrVqNqNlf6m5zwI3gdIyq4T98ht7zek4YO9BdzZzz8Qkx8cGPwbHHBd0wKbmmGdNabzukPUavS8uts-AgKnfmGSxeSdyYqn9qwgXNYETcizTrTZcbUz-fvB4V3O08c7FpglIGmPancHbf9x4uMm03DpveNI1Ta9ouOYADw',
-        'https://yastatic.net/naydex/yandex-search/1TLRG7423/ead043Sb/t-dsrVqNqNlf6m5zwI3gdIyq4T98ht7zek4YO9B4zZyzEVnENHGq8bHC4GjgCen2CTZvChsUWCMPa1sNU9BVH1KmKSkeSZzoqm86YkQpIAQc6xWOqAbagr9uqUplHTmJJoGppJIHePaWoXcOR_7OQf03Cw6vtH3zeg9KaJJTw5',
-      ]"
-    />
+  <UiModal :is-open="isOpenPreview" max-width="750px" @close="closePreview" :borderless="true">
+    <ModalsPreviewImage :images="previewImages" />
   </UiModal>
 </template>
 
 <script setup>
-const isOpenPreview = ref(null);
-const openPreview = () => {
+const props = defineProps({
+  rows: {
+    type: Array,
+    default: () => [],
+  },
+});
+
+const isOpenPreview = ref(false);
+const previewImages = ref([]);
+
+const openPreview = (row) => {
+  previewImages.value = (row?.photos || [])
+    .map((photo) => photo?.url)
+    .filter(Boolean);
   isOpenPreview.value = true;
 };
 
 const closePreview = () => {
   isOpenPreview.value = false;
+  previewImages.value = [];
 };
 
-const students = [
-  {
-    description: "Надо чинить дорогу",
-    category: "Починить",
-    priority: "Низкая",
-    deadline: "24.3.2026",
-    employee: "Сергей",
-    user_appeals_count: 0,
-    created_at: "2024-01-01T00:00:00.000Z",
-    status: "pending",
-  },
-];
+const priorityText = (priority) => {
+  switch (priority) {
+    case "urgent":
+      return "Срочный";
+    case "high":
+      return "Высокий";
+    case "low":
+      return "Низкий";
+    default:
+      return "Средний";
+  }
+};
+
+const statusText = (status) => {
+  switch (status) {
+    case "completed":
+      return "Завершено";
+    case "rated":
+      return "Оценено";
+    case "processing":
+      return "В работе";
+    case "needs_revision":
+      return "Нужна доработка";
+    case "rejected":
+      return "Отклонено";
+    case "moderation":
+    default:
+      return "На модерации";
+  }
+};
+
+const normalizeUiStatus = (status) => {
+  switch (status) {
+    case "completed":
+    case "rated":
+      return "solved";
+    case "rejected":
+      return "rejected";
+    default:
+      return "pending";
+  }
+};
 </script>
 
 <style lang="scss" scoped>
@@ -129,6 +166,13 @@ const students = [
     border-radius: $border-r-md;
     cursor: pointer;
   }
+  &__preview-btn {
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+  }
   &__table {
     border-collapse: separate;
     border-spacing: 0;
@@ -138,7 +182,7 @@ const students = [
   &__row {
     background-color: $surface-100;
     &:hover {
-      background-color: red !important;
+      background-color: $surface-150 !important;
     }
   }
   &__body {

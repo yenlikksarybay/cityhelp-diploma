@@ -25,20 +25,6 @@ const authStore = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 
-const isOpenPossibility = computed(
-  () => route.query?.modal === "possibility" || false,
-);
-
-const closeModalPossibility = () => {
-  const newQuery = { ...route.query };
-  delete newQuery.modal;
-
-  router.push({
-    path: route.path,
-    query: newQuery,
-  });
-};
-
 watch(
   () => authStore?.isAuth,
   (newVal) => {

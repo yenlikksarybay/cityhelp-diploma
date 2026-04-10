@@ -6,7 +6,6 @@
       <transition name="slide-down" mode="out-in">
         <TheAuthLogin v-if="route.query?.auth === 'login'" />
         <TheAuthRegister v-else-if="route.query?.auth === 'register'" />
-        <TheAuthSmsCode v-else-if="route.query?.auth === 'sms'" />
       </transition>
     </div>
   </div>
@@ -14,20 +13,6 @@
 
 <script setup>
 const route = useRoute();
-const tabs = [
-  {
-    id: 1,
-    name: "Логин",
-    value: "login",
-  },
-  {
-    id: 2,
-    name: "Регистрация",
-    value: "register",
-  },
-];
-
-const oneTab = ref(tabs[0]);
 </script>
 
 <style lang="scss" scoped>

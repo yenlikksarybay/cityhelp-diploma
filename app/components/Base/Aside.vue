@@ -113,7 +113,10 @@ const navs = computed(() => {
         },
       ],
     },
-    {
+  ];
+
+  if (roleStore.isUser || roleStore.isSuperAdmin) {
+    showNav.push({
       id: 2,
       name: "Персональные (User)",
       lists: [
@@ -124,8 +127,11 @@ const navs = computed(() => {
           icon: "folders-i",
         },
       ],
-    },
-    {
+    });
+  }
+
+  if (roleStore.isAdmin || roleStore.isSuperAdmin) {
+    showNav.push({
       id: 3,
       name: "Персональные (Admin)",
       lists: [
@@ -148,8 +154,11 @@ const navs = computed(() => {
           icon: "users-i",
         },
       ],
-    },
-    {
+    });
+  }
+
+  if (roleStore.isEmployee || roleStore.isSuperAdmin) {
+    showNav.push({
       id: 4,
       name: "Персональные (Employee)",
       lists: [
@@ -160,26 +169,30 @@ const navs = computed(() => {
           icon: "folders-i",
         },
       ],
-    },
-    {
-      id: 5,
-      name: "Общие",
-      lists: [
-        {
-          name: "Контакты",
-          route: { path: "/panel/contacts" },
-          path: "/panel/contacts",
-          icon: "circle-i",
-        },
-        {
-          name: "О 'CityHelp'",
-          route: { path: "/panel/about-us" },
-          path: "/panel/about-us",
-          icon: "spiral-i",
-        },
-      ],
-    },
-    {
+    });
+  }
+
+  showNav.push({
+    id: 5,
+    name: "Общие",
+    lists: [
+      {
+        name: "Контакты",
+        route: { path: "/panel/contacts" },
+        path: "/panel/contacts",
+        icon: "circle-i",
+      },
+      {
+        name: "О 'CityHelp'",
+        route: { path: "/panel/about-us" },
+        path: "/panel/about-us",
+        icon: "spiral-i",
+      },
+    ],
+  });
+
+  if (roleStore.isSuperAdmin) {
+    showNav.push({
       id: 6,
       name: "Дополнительно",
       lists: [
@@ -196,40 +209,7 @@ const navs = computed(() => {
           icon: "ai-i",
         },
       ],
-    },
-  ];
-
-  if (!roleStore.isStudent) {
-    // showNav.push({
-    //   id: 2,
-    //   name: t("Дополнительно"),
-    //   lists: [
-    //     {
-    //       name: t("Статистика"),
-    //       route: { path: "/statistics" },
-    //       path: "/statistics",
-    //       icon: "statistics-i",
-    //     },
-    //     {
-    //       name: t("Ученики"),
-    //       route: { path: "/students" },
-    //       path: "/students",
-    //       icon: "users-i",
-    //     },
-    //     {
-    //       name: t("Результат школы"),
-    //       route: { path: "/school-results" },
-    //       path: "/school-results",
-    //       icon: "paper-check",
-    //     },
-    //     {
-    //       name: t("Методика"),
-    //       route: { path: "/methodology" },
-    //       path: "/methodology",
-    //       icon: "lampa-i",
-    //     },
-    //   ],
-    // });
+    });
   }
 
   return showNav;

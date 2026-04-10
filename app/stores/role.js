@@ -2,10 +2,12 @@ export const useRoleStore = defineStore("role", () => {
 	const authStore = useAuthStore()
 	const user = computed(() => authStore.getUser)
 
-	const isSuperAdmin = computed(() => user.value?.role?.id === 'super_admin' || false)
-	const isAdmin = computed(() => user.value?.role?.id === 'admin' || false)
-	const isEmployee = computed(() => user.value?.role?.id === 'employee' || false)
-	const isUser = computed(() => user.value?.role?.id === 'user' || false)
+	const role = computed(() => user.value?.role)
+
+	const isSuperAdmin = computed(() => role.value === 'superadmin' || false)
+	const isAdmin = computed(() => role.value === 'admin' || false)
+	const isEmployee = computed(() => role.value === 'employee' || false)
+	const isUser = computed(() => role.value === 'user' || false)
 
 	return {
 		isSuperAdmin,

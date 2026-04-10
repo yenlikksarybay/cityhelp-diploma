@@ -19,17 +19,17 @@ export const useTitleStore = defineStore("title", () => {
 				activeRoute.value = '/panel/create-appeal'
 				break;
 
-			// User
-			case '/panel/user/my-appeals':
-				title.value = "Мои обращений"
-				activeRoute.value = '/panel/user/my-appeals'
-				break;
+		// User
+		case '/panel/user/my-appeals':
+			title.value = "Мои обращения"
+			activeRoute.value = '/panel/user/my-appeals'
+			break;
 
-			//Admin
-			case '/panel/admin/appeals':
-				title.value = "Cписок обращений"
-				activeRoute.value = '/panel/admin/appeals'
-				break;
+		//Admin
+		case '/panel/admin/appeals':
+			title.value = "Список обращений"
+			activeRoute.value = '/panel/admin/appeals'
+			break;
 			case '/panel/admin/users':
 				title.value = "Пользователи"
 				activeRoute.value = '/panel/admin/users'

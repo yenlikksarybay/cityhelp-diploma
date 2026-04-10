@@ -9,7 +9,7 @@
               {{ "Категория" }}
             </th>
             <th class="table__cell table__cell--head">
-              {{ "Проритет" }}
+              {{ "Приоритет" }}
             </th>
             <th class="table__cell table__cell--head">
               {{ "Пользователь" }}
@@ -28,8 +28,8 @@
             </th>
           </tr>
         </thead>
-        <tbody class="table__body" v-if="students.length">
-          <tr class="table__row" v-for="(row, index) in students" :key="row.id">
+        <tbody class="table__body" v-if="rows.length">
+          <tr class="table__row" v-for="(row, index) in rows" :key="row.id">
             <td class="table__cell table__cell--topic">
               {{ row.description }}
             </td>
@@ -37,24 +37,24 @@
               <p>{{ row.category }}</p>
             </td>
             <td class="table__cell">
-              <UiStatusText status="rejected" :text="row.priority" />
+              <UiStatusText :status="normalizeUiStatus(row.priority)" :text="priorityText(row.priority)" />
             </td>
             <td class="table__cell">
-              {{ row.email }}
+              {{ row.user?.name || row.user?.email || row.userName || "?" }}
             </td>
             <td class="table__cell">
-              {{ formatDateToDots(row.created_at) || "?" }}
+              {{ formatDateToDots(row.createdAt) || "?" }}
             </td>
             <td class="table__cell">
-              {{ row.employee }}
+              {{ row.assignedEmployee?.name || row.employeeName || "Не назначен" }}
             </td>
             <td class="table__cell">
-              <UiStatus :status="row.status" :text="row.status" />
+              <UiStatus :status="normalizeUiStatus(row.status)" :text="statusText(row.status)" />
             </td>
             <td class="table__cell">
               <UiButton
                 tag="a"
-                :href="`/panel/appeal/1`"
+                :href="`/panel/appeal/${row.id}`"
                 label="Перейти"
                 class="secondary-btn"
               />
@@ -67,18 +67,55 @@
 </template>
 
 <script setup>
-const students = [
-  {
-    description: "Надо чинить дорогу",
-    category: "Починить",
-    priority: "Низкая",
-    email: "Иван",
-    employee: "Сергей",
-    user_appeals_count: 0,
-    created_at: "2024-01-01T00:00:00.000Z",
-    status: "pending",
+defineProps({
+  rows: {
+    type: Array,
+    default: () => [],
   },
-];
+});
+
+const priorityText = (priority) => {
+  switch (priority) {
+    case "urgent":
+      return "Срочный";
+    case "high":
+      return "Высокий";
+    case "low":
+      return "Низкий";
+    default:
+      return "Средний";
+  }
+};
+
+const statusText = (status) => {
+  switch (status) {
+    case "completed":
+      return "Завершено";
+    case "rated":
+      return "Оценено";
+    case "processing":
+      return "В работе";
+    case "needs_revision":
+      return "Нужна доработка";
+    case "rejected":
+      return "Отклонено";
+    case "moderation":
+    default:
+      return "На модерации";
+  }
+};
+
+const normalizeUiStatus = (status) => {
+  switch (status) {
+    case "completed":
+    case "rated":
+      return "solved";
+    case "rejected":
+      return "rejected";
+    default:
+      return "pending";
+  }
+};
 </script>
 
 <style lang="scss" scoped>

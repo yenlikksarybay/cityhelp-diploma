@@ -40,6 +40,7 @@
 </template>
 
 <script setup>
+const api = useApi();
 useSeo({ title: "AI Промты" });
 
 const moduleOptions = [
@@ -118,7 +119,7 @@ const createEmptyForm = () => ({
   exampleOutput: "",
 });
 
-const prompts = ref(createInitialPrompts());
+const prompts = ref([]);
 const selectedPromptId = ref(null);
 const selectedModule = ref(moduleOptions[0]);
 const selectedTone = ref(toneOptions[0]);
@@ -126,6 +127,47 @@ const selectedFilterModule = ref(filterModuleOptions[0]);
 const search = ref("");
 const submitted = ref(false);
 const form = ref(createEmptyForm());
+const isLoading = ref(false);
+
+const normalizePrompt = (prompt) => ({
+  id: prompt.id,
+  key: prompt.key || "",
+  name: prompt.name || "",
+  module: prompt.module || "appeals",
+  moduleLabel:
+    moduleOptions.find((option) => option.value === prompt.module)?.name ||
+    prompt.moduleLabel ||
+    "Обращения",
+  tone: prompt.tone || "strict",
+  toneLabel:
+    toneOptions.find((option) => option.value === prompt.tone)?.name ||
+    prompt.toneLabel ||
+    "Строгий",
+  systemPrompt: prompt.systemPrompt || "",
+  userTemplate: prompt.userTemplate || "",
+  guardrails: prompt.guardrails || "",
+  exampleInput: prompt.exampleInput || "",
+  exampleOutput: prompt.exampleOutput || "",
+  updatedAt: prompt.updatedAt || createTimestamp(),
+});
+
+const loadPrompts = async () => {
+  isLoading.value = true;
+  try {
+    const response = await api.client({ url: "/ai/prompts", method: "get" });
+    const list = response?.data || response || [];
+    prompts.value = list.map(normalizePrompt);
+  } catch (error) {
+    useNotify({
+      title: "Промты",
+      text: error?.statusMessage || error?.data?.statusMessage || "Не удалось загрузить промты",
+      status: "error",
+    });
+    prompts.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
 
 const filteredPrompts = computed(() => {
   const normalizedSearch = search.value.trim().toLowerCase();
@@ -187,7 +229,6 @@ const savePrompt = () => {
   submitted.value = true;
 
   if (!form.value.key.trim() || !form.value.name.trim()) return;
-
   const payload = {
     key: form.value.key.trim(),
     name: form.value.name.trim(),
@@ -200,25 +241,61 @@ const savePrompt = () => {
     guardrails: form.value.guardrails.trim(),
     exampleInput: form.value.exampleInput.trim(),
     exampleOutput: form.value.exampleOutput.trim(),
-    updatedAt: createTimestamp(),
   };
 
-  if (selectedPromptId.value) {
-    prompts.value = prompts.value.map((prompt) =>
-      prompt.id === selectedPromptId.value ? { ...prompt, ...payload } : prompt,
-    );
-  } else {
-    prompts.value.unshift({ id: Date.now(), ...payload });
-  }
+  const request = selectedPromptId.value
+    ? api.client({
+        url: `/ai/prompts/${selectedPromptId.value}`,
+        method: "patch",
+        body: payload,
+      })
+    : api.client({
+        url: "/ai/prompts",
+        method: "post",
+        body: payload,
+      });
 
-  resetForm();
+  request
+    .then((response) => {
+      const saved = normalizePrompt(response?.data || response);
+      if (selectedPromptId.value) {
+        prompts.value = prompts.value.map((prompt) =>
+          String(prompt.id) === String(selectedPromptId.value) ? saved : prompt,
+        );
+      } else {
+        prompts.value.unshift(saved);
+      }
+      resetForm();
+    })
+    .catch((error) => {
+      useNotify({
+        title: "Промты",
+        text: error?.statusMessage || error?.data?.statusMessage || "Не удалось сохранить промт",
+        status: "error",
+      });
+    });
 };
 
 const removePrompt = (id) => {
   if (!id) return;
-  prompts.value = prompts.value.filter((prompt) => prompt.id !== id);
-  if (selectedPromptId.value === id) resetForm();
+  api.client({
+    url: `/ai/prompts/${id}`,
+    method: "delete",
+  })
+    .then(() => {
+      prompts.value = prompts.value.filter((prompt) => String(prompt.id) !== String(id));
+      if (String(selectedPromptId.value) === String(id)) resetForm();
+    })
+    .catch((error) => {
+      useNotify({
+        title: "Промты",
+        text: error?.statusMessage || error?.data?.statusMessage || "Не удалось удалить промт",
+        status: "error",
+      });
+    });
 };
+
+onMounted(loadPrompts);
 </script>
 
 <style lang="scss" scoped>
