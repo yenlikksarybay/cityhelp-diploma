@@ -47,6 +47,9 @@
         <div class="list__item-top">
           <span class="list__badge">{{ prompt.moduleLabel }}</span>
           <span class="list__badge">{{ prompt.toneLabel }}</span>
+          <span class="list__badge" :class="{ 'list__badge--muted': !prompt.isActive }">
+            {{ prompt.isActive ? `v${prompt.version || 1}` : "Архив" }}
+          </span>
         </div>
         <p class="list__item-title">{{ prompt.name }}</p>
         <p class="list__item-key">{{ prompt.key }}</p>
@@ -65,7 +68,7 @@
 defineProps({
   prompts: { type: Array, required: true },
   search: { type: String, default: "" },
-  selectedPromptId: { type: Number, default: null },
+  selectedPromptId: { type: [Number, String], default: null },
   selectedFilterModule: { type: Object, required: true },
   filterModuleOptions: { type: Array, required: true },
 });
@@ -124,7 +127,7 @@ defineEmits(["reset", "select", "update:search", "update:filter-module"]);
 
   &__item-top {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
     gap: $gap-sm;
     margin-bottom: 10px;
   }
@@ -136,6 +139,11 @@ defineEmits(["reset", "select", "update:search", "update:filter-module"]);
     border-radius: 999px;
     background-color: $white;
     color: $surface-600;
+
+    &--muted {
+      background-color: $surface-150;
+      color: $surface-500;
+    }
   }
 
   &__item-title {

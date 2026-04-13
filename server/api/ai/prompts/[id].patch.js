@@ -2,6 +2,8 @@ import { readBody, createError } from "h3";
 import { PromptModel } from "../../../models/Prompt.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
 
+const PROMPT_VERSION = 3;
+
 export default defineEventHandler(async (event) => {
 	const id = event.context.params?.id;
 	const body = await readBody(event);
@@ -31,6 +33,7 @@ export default defineEventHandler(async (event) => {
 			prompt[field] = body[field];
 		}
 	});
+	prompt.version = PROMPT_VERSION;
 
 	await prompt.save();
 
@@ -49,6 +52,8 @@ export default defineEventHandler(async (event) => {
 			guardrails: prompt.guardrails,
 			exampleInput: prompt.exampleInput,
 			exampleOutput: prompt.exampleOutput,
+			version: prompt.version,
+			isActive: prompt.isActive !== false,
 			updatedAt: prompt.updatedAt,
 		},
 	});

@@ -5,7 +5,7 @@ import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
 export default defineEventHandler(async (event) => {
 	const body = await readBody(event);
 	const { promptId, appealId, input } = body || {};
-	const { prompt, appeal, result } = await runAiPromptTest({
+	const { prompt, appeal, result, meta } = await runAiPromptTest({
 		promptId,
 		appealId,
 		input,
@@ -20,6 +20,8 @@ export default defineEventHandler(async (event) => {
 				name: prompt.name,
 				module: prompt.module,
 				tone: prompt.tone,
+				version: prompt.version || 1,
+				isActive: prompt.isActive !== false,
 			},
 			appeal: appeal
 				? {
@@ -33,6 +35,7 @@ export default defineEventHandler(async (event) => {
 				  }
 				: null,
 			result,
+			meta,
 		},
 	});
 });

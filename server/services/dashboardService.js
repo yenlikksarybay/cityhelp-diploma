@@ -93,11 +93,7 @@ export const dashboardService = {
 			.select("location status priority")
 			.lean();
 
-		return appeals.flatMap((appeal) => {
-			const repeat = ACTIVE_STATUSES.includes(appeal.status) ? 2 : 1;
-			const point = [appeal.location.x, appeal.location.y];
-			return Array.from({ length: repeat }, () => point);
-		});
+		return appeals.map((appeal) => [appeal.location.x, appeal.location.y]);
 	},
 
 	async getAppeals(user, limit = 9) {

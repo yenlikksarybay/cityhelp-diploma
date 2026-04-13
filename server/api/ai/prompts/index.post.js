@@ -2,6 +2,8 @@ import { readBody, createError } from "h3";
 import { PromptModel } from "../../../models/Prompt.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
 
+const PROMPT_VERSION = 3;
+
 export default defineEventHandler(async (event) => {
 	const body = await readBody(event);
 	const { key, name, module, moduleLabel, tone, toneLabel, systemPrompt, userTemplate, guardrails, exampleInput, exampleOutput } = body || {};
@@ -22,6 +24,8 @@ export default defineEventHandler(async (event) => {
 		guardrails: String(guardrails || "").trim(),
 		exampleInput: String(exampleInput || "").trim(),
 		exampleOutput: String(exampleOutput || "").trim(),
+		version: PROMPT_VERSION,
+		isActive: true,
 	};
 
 	const exists = await PromptModel.findOne({ key: payload.key });

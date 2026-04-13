@@ -5,6 +5,7 @@ import { UserModel } from "../../../models/User.js";
 import { verifyAuthToken } from "../../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
 import { createAppealTimelineEntry } from "../../../utils/appealTimeline.js";
+import { createAiTrainingCase, createDecisionSnapshot } from "../../../utils/aiTrainingCase.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -49,6 +50,7 @@ export default defineEventHandler(async (event) => {
 	const isOk = Boolean(body?.isOk);
 	const note = String(body?.note || "").trim();
 	const nextStatus = isOk ? "new" : "rejected";
+	const originalDecision = createDecisionSnapshot(appeal);
 
 	if (isOk) {
 		appeal.status = nextStatus;
@@ -76,6 +78,17 @@ export default defineEventHandler(async (event) => {
 	];
 
 	await appeal.save();
+
+	await createAiTrainingCase({
+		appeal,
+		moderator: user,
+		source: "admin_moderation",
+		action: isOk ? "approved" : "rejected",
+		originalDecision,
+		finalDecision: createDecisionSnapshot(appeal),
+		correctedFields: ["status", ...(note ? ["moderationNote"] : [])],
+		moderatorNote: appeal.moderationNote,
+	});
 
 	return createSuccessResponse({
 		message: "Проверка сохранена",

@@ -21,6 +21,34 @@
           <p class="answer__vision-title">Как AI объяснил решение</p>
           <p class="answer__vision-text">{{ props.appeal.aiResult.analysisSummary }}</p>
         </div>
+        <div v-if="confidenceItems.length" class="answer__vision">
+          <p class="answer__vision-title">Уверенность AI</p>
+          <div class="answer__confidence-list">
+            <span
+              v-for="item in confidenceItems"
+              :key="item.key"
+              class="answer__confidence"
+              :class="`answer__confidence--${item.level}`"
+            >
+              {{ item.label }}: {{ item.value }}%
+            </span>
+          </div>
+          <p v-if="props.appeal?.aiResult?.needsCarefulReview" class="answer__vision-text">
+            Требует внимательной проверки модератором.
+          </p>
+        </div>
+        <div v-if="candidateCategories.length" class="answer__vision">
+          <p class="answer__vision-title">Shortlist категорий до Gemini</p>
+          <div class="answer__candidate-list">
+            <span
+              v-for="item in candidateCategories"
+              :key="item.key"
+              class="answer__candidate"
+            >
+              {{ item.name || item.key }} · {{ item.score }}
+            </span>
+          </div>
+        </div>
         <div v-if="props.appeal?.aiResult?.photoDetails?.length" class="answer__vision">
           <p class="answer__vision-title">Подробности на фото</p>
           <ul class="answer__list">
@@ -211,6 +239,32 @@ const decisionReasons = computed(() => {
   ].filter((item) => String(item.value || "").trim() && item.value !== "—");
 });
 
+const formatConfidence = (value) => Math.round(Number(value || 0) * 100);
+
+const confidenceLevel = (value) => {
+  const score = Number(value || 0);
+  if (score >= 0.8) return "high";
+  if (score >= 0.5) return "medium";
+  return "low";
+};
+
+const confidenceItems = computed(() => {
+  const aiResult = props.appeal?.aiResult || {};
+  return [
+    { key: "category", label: "Категория", raw: aiResult.confidenceCategory },
+    { key: "priority", label: "Приоритет", raw: aiResult.confidencePriority },
+    { key: "photo", label: "Фото", raw: aiResult.confidencePhoto },
+  ]
+    .filter((item) => item.raw !== undefined && item.raw !== null && item.raw !== "")
+    .map((item) => ({
+      ...item,
+      value: formatConfidence(item.raw),
+      level: confidenceLevel(item.raw),
+    }));
+});
+
+const candidateCategories = computed(() => props.appeal?.aiResult?.candidateCategories || []);
+
 const formatMeta = (meta = {}) => {
   const entries = [];
   if (meta.category) entries.push({ key: "category", label: "Категория", value: meta.category });
@@ -316,6 +370,33 @@ const formatDateTime = (value) => {
   &__list-item {
     line-height: 1.45;
     color: $surface-600;
+  }
+  &__confidence-list,
+  &__candidate-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $gap-xs;
+  }
+  &__confidence,
+  &__candidate {
+    padding: 6px $padding-xs;
+    border-radius: $border-r-sm;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: $surface-100;
+    color: $surface-600;
+  }
+  &__confidence--high {
+    background-color: $status-completed-bg;
+    color: $status-completed-color;
+  }
+  &__confidence--medium {
+    background-color: $status-processing-bg;
+    color: $status-processing-color;
+  }
+  &__confidence--low {
+    background-color: $status-rejected-bg;
+    color: $status-rejected-color;
   }
   &__reason {
     display: flex;

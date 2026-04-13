@@ -3,7 +3,7 @@
     <div class="faq-admin__wrapper">
       <div class="faq-admin__head">
         <div>
-          <h2 class="title-md">FAQ</h2>
+          <h2 class="title-md hidden">FAQ</h2>
           <p class="faq-admin__sub">Управление вопросами и ответами</p>
         </div>
       </div>
@@ -47,7 +47,10 @@ const filteredFaqs = computed(() => {
   const query = search.value.trim().toLowerCase();
   if (!query) return faqs.value;
   return faqs.value.filter((item) =>
-    [item.question, item.answer, item.category, item.key].join(" ").toLowerCase().includes(query),
+    [item.question, item.answer, item.category, item.key]
+      .join(" ")
+      .toLowerCase()
+      .includes(query),
   );
 });
 
@@ -102,13 +105,17 @@ const saveFaq = async () => {
     isActive: Boolean(form.value.isActive),
   };
   const response = await api.client({
-    url: selectedFaqId.value ? `/admin/faq/${selectedFaqId.value}` : "/admin/faq",
+    url: selectedFaqId.value
+      ? `/admin/faq/${selectedFaqId.value}`
+      : "/admin/faq",
     method: selectedFaqId.value ? "patch" : "post",
     body: payload,
   });
   const saved = response?.data || response || {};
   if (selectedFaqId.value) {
-    faqs.value = faqs.value.map((item) => (item.id === selectedFaqId.value ? { ...item, ...saved } : item));
+    faqs.value = faqs.value.map((item) =>
+      item.id === selectedFaqId.value ? { ...item, ...saved } : item,
+    );
   } else {
     faqs.value.unshift(saved);
   }

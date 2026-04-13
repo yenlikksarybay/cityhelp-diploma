@@ -67,6 +67,33 @@
               </p>
             </div>
 
+            <div class="prompts__demo-grid-details">
+              <div class="prompts__demo-section">
+                <p class="prompts__demo-section-title">Классификация</p>
+                <p class="prompts__demo-section-text">
+                  Категория: {{ demoResult.category || "—" }}
+                </p>
+                <p class="prompts__demo-section-text">
+                  Подкатегория: {{ demoResult.subCategory || "—" }}
+                </p>
+                <p class="prompts__demo-section-text">
+                  Приоритет: {{ demoResult.priority || "—" }}
+                </p>
+              </div>
+              <div class="prompts__demo-section">
+                <p class="prompts__demo-section-title">Уверенность</p>
+                <p class="prompts__demo-section-text">
+                  Категория: {{ demoResult.confidenceCategory }}
+                </p>
+                <p class="prompts__demo-section-text">
+                  Приоритет: {{ demoResult.confidencePriority }}
+                </p>
+                <p class="prompts__demo-section-text">
+                  Фото: {{ demoResult.confidencePhoto }}
+                </p>
+              </div>
+            </div>
+
             <div
               v-if="demoResult.evidence?.length || demoResult.uncertainties?.length"
               class="prompts__demo-grid-details"
@@ -181,47 +208,6 @@ const createTimestamp = () =>
     year: "numeric",
   });
 
-const createInitialPrompts = () => [
-  {
-    id: 1,
-    key: "appeal_moderation",
-    name: "Модерация обращений",
-    module: "appeals",
-    moduleLabel: "Обращения",
-    tone: "strict",
-    toneLabel: "Строгий",
-    systemPrompt:
-      "Ты анализируешь обращения граждан и определяешь категорию, риск и корректность формулировок.",
-    userTemplate:
-      "Проанализируй обращение, выдели тему, срочность и предложи краткий итог.",
-    guardrails:
-      "Не придумывай факты, не меняй смысл обращения, не добавляй юридические выводы без основания.",
-    exampleInput: "Во дворе уже неделю не вывозят мусор.",
-    exampleOutput:
-      "Категория: ЖКХ. Срочность: средняя. Итог: требуется вывоз мусора.",
-    updatedAt: createTimestamp(),
-  },
-  {
-    id: 2,
-    key: "support_assistant",
-    name: "AI для поддержки",
-    module: "support",
-    moduleLabel: "Поддержка",
-    tone: "friendly",
-    toneLabel: "Дружелюбный",
-    systemPrompt:
-      "Ты помогаешь пользователям CityHelp быстро понять статус заявки и следующие шаги.",
-    userTemplate:
-      "Ответь пользователю простым языком, что происходит с обращением и что делать дальше.",
-    guardrails:
-      "Не обещай сроки без данных из системы. Не раскрывай внутреннюю информацию сотрудников.",
-    exampleInput: "Почему моя заявка до сих пор в обработке?",
-    exampleOutput:
-      "Ваша заявка принята и находится в работе. Как только статус изменится, вы получите уведомление.",
-    updatedAt: createTimestamp(),
-  },
-];
-
 const createEmptyForm = () => ({
   key: "",
   name: "",
@@ -283,6 +269,8 @@ const normalizePrompt = (prompt) => ({
   guardrails: prompt.guardrails || "",
   exampleInput: prompt.exampleInput || "",
   exampleOutput: prompt.exampleOutput || "",
+  version: prompt.version || 1,
+  isActive: prompt.isActive !== false,
   updatedAt: prompt.updatedAt || createTimestamp(),
 });
 
@@ -404,10 +392,21 @@ const runDemoTest = async () => {
       meta: `Промт: ${selectedDemoPrompt.value.name} · Обращение: ${selectedDemoAppeal.value.name}`,
       shortSummary: result.shortSummary || "—",
       analysisSummary: result.analysisSummary || "—",
+      category: result.category || "—",
+      subCategory: result.subCategory || "—",
+      priority: result.priority || "—",
+      confidenceCategory: formatPercent(result.confidenceCategory),
+      confidencePriority: formatPercent(result.confidencePriority),
+      confidencePhoto: formatPercent(result.confidencePhoto),
       evidence: Array.isArray(result.evidence) ? result.evidence : [],
       uncertainties: Array.isArray(result.uncertainties) ? result.uncertainties : [],
       pretty: JSON.stringify(data, null, 2),
     };
+    useNotify({
+      title: "Тест AI",
+      text: "Демо-тест выполнен без записи в базу",
+      status: "success",
+    });
   } catch (error) {
     useNotify({
       title: "Тест AI",
@@ -425,6 +424,12 @@ const runDemoTest = async () => {
 
 const closeDemoProcessing = () => {
   isDemoProcessingOpen.value = false;
+};
+
+const formatPercent = (value) => {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "—";
+  return `${Math.round(number * 100)}%`;
 };
 
 const resetForm = () => {
@@ -487,6 +492,7 @@ const savePrompt = () => {
   request
     .then((response) => {
       const saved = normalizePrompt(response?.data || response);
+      const isEditing = Boolean(selectedPromptId.value);
       if (selectedPromptId.value) {
         prompts.value = prompts.value.map((prompt) =>
           String(prompt.id) === String(selectedPromptId.value) ? saved : prompt,
@@ -494,6 +500,11 @@ const savePrompt = () => {
       } else {
         prompts.value.unshift(saved);
       }
+      useNotify({
+        title: "Промты",
+        text: isEditing ? "Промт обновлён и переведён на актуальную версию" : "Промт создан",
+        status: "success",
+      });
       resetForm();
     })
     .catch((error) => {
@@ -514,6 +525,11 @@ const removePrompt = (id) => {
     .then(() => {
       prompts.value = prompts.value.filter((prompt) => String(prompt.id) !== String(id));
       if (String(selectedPromptId.value) === String(id)) resetForm();
+      useNotify({
+        title: "Промты",
+        text: "Промт удалён",
+        status: "success",
+      });
     })
     .catch((error) => {
       useNotify({

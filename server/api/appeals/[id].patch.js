@@ -5,6 +5,7 @@ import { UserModel } from "../../models/User.js";
 import { verifyAuthToken } from "../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../utils/createSuccessResponse.js";
 import { createAppealTimelineEntry } from "../../utils/appealTimeline.js";
+import { createAiTrainingCase, createDecisionSnapshot } from "../../utils/aiTrainingCase.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -42,7 +43,7 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 403, statusMessage: "Редактирование доступно только на модерации" });
 	}
 
-	const originalPhotos = Array.isArray(appeal.photos) ? appeal.photos.map((item) => String(item?.url || "")).filter(Boolean) : [];
+	const originalDecision = createDecisionSnapshot(appeal);
 
 	const normalizeLocation = (location) => {
 		if (!location || typeof location !== "object") return null;
@@ -174,6 +175,19 @@ export default defineEventHandler(async (event) => {
 	}
 
 	await appeal.save();
+
+	if (changes.length && isAdmin) {
+		await createAiTrainingCase({
+			appeal,
+			moderator: user,
+			source: "moderator_edit",
+			action: "edit",
+			originalDecision,
+			finalDecision: createDecisionSnapshot(appeal),
+			correctedFields: changes,
+			moderatorNote: appeal.moderationNote,
+		});
+	}
 
 	return createSuccessResponse({
 		message: "Обращение обновлено",

@@ -9,7 +9,13 @@ import {
 } from "../constants/appeal.js";
 import { DEFAULT_CATEGORIES, CATEGORY_PLAYBOOK } from "../constants/knowledgeBase.js";
 
-const PROMPT_VERSION = 2;
+const PROMPT_VERSION = 3;
+const ANALYSIS_PIPELINE_VERSION = "cityhelp-ai-v2.1";
+const CONFIDENCE_THRESHOLDS = {
+	high: 0.8,
+	medium: 0.5,
+};
+const CATEGORY_CANDIDATE_LIMIT = 4;
 
 const VISION_PROMPT_KEYS = ["appeal_create_analysis_vision"];
 const CLASSIFICATION_PROMPT_KEYS = [
@@ -35,24 +41,24 @@ const DEFAULT_ANALYSIS_PROMPTS = {
 		systemPrompt:
 			"Ты анализируешь фотографии городского обращения. Опиши только то, что видно на фото. Верни только JSON на русском языке.",
 		userTemplate:
-			"Описание пользователя: {{description}}\n\nВерни JSON строго по схеме: {\"photoObservation\":\"...\",\"photoDetails\":[\"...\"],\"photoRelevant\":true,\"photoMismatch\":false,\"uncertainties\":[\"...\"]}. photoDetails должен содержать конкретные видимые детали: объекты, повреждения, следы, окружение, масштаб. Если фото малоинформативное, объясни это в uncertainties.",
+			"Описание пользователя: {{description}}\n\nВерни JSON строго по схеме: {\"photoObservation\":\"...\",\"photoDetails\":[\"...\"],\"photoRelevant\":true,\"photoMismatch\":false,\"confidencePhoto\":0.0,\"uncertainties\":[\"...\"]}. confidencePhoto - число от 0 до 1, где 1 означает, что фото хорошо подтверждает проблему. photoDetails должен содержать конкретные видимые детали: объекты, повреждения, следы, окружение, масштаб. Если фото малоинформативное, объясни это в uncertainties.",
 		guardrails:
 			"Не повторяй комментарий пользователя вместо анализа фото. Не придумывай невидимые объекты. Если видно мало, прямо скажи, чего не хватает.",
 		exampleInput: "Фото дороги с повреждением покрытия.",
 		exampleOutput:
-			"{\"photoObservation\":\"На фото видно повреждённый участок дорожного покрытия с неровностью и лужей рядом.\",\"photoDetails\":[\"повреждение асфальта\",\"неровная поверхность\",\"лужа возле дефекта\",\"участок проезжей части\"],\"photoRelevant\":true,\"photoMismatch\":false,\"uncertainties\":[\"по фото нельзя точно оценить глубину повреждения\"]}",
+			"{\"photoObservation\":\"На фото видно повреждённый участок дорожного покрытия с неровностью и лужей рядом.\",\"photoDetails\":[\"повреждение асфальта\",\"неровная поверхность\",\"лужа возле дефекта\",\"участок проезжей части\"],\"photoRelevant\":true,\"photoMismatch\":false,\"confidencePhoto\":0.84,\"uncertainties\":[\"по фото нельзя точно оценить глубину повреждения\"]}",
 	},
 	appeal_create_analysis_classification: {
 		version: PROMPT_VERSION,
 		systemPrompt:
-			"Ты классифицируешь городское обращение. Выбирай category только из списка категорий, subCategory только из подкатегорий выбранной категории. Верни только JSON на русском языке.",
+			"Ты классифицируешь городское обращение. Выбирай category только из shortlist категорий, subCategory только из подкатегорий выбранной категории. Верни только JSON на русском языке.",
 		userTemplate:
-			"Описание: {{description}}\nЛокация: {{location}}\nAI-наблюдение по фото: {{vision}}\nКатегории и playbook:\n{{categoryContext}}\n\nВерни JSON строго по схеме: {\"category\":\"roads|housing|lighting|waste|general\",\"subCategory\":\"...\",\"priority\":\"low|medium|high|urgent\",\"shortSummary\":\"...\",\"analysisSummary\":\"...\",\"evidence\":[\"...\"],\"uncertainties\":[\"...\"],\"assumptions\":[\"...\"],\"needsClarification\":false,\"clarificationReason\":\"...\",\"categoryReason\":\"...\",\"subCategoryReason\":\"...\",\"priorityReason\":\"...\"}.",
+			"Описание: {{description}}\nЛокация: {{location}}\nAI-наблюдение по фото: {{vision}}\nShortlist категорий:\n{{categoryContext}}\n\nВерни JSON строго по схеме: {\"category\":\"...\",\"subCategory\":\"...\",\"priority\":\"low|medium|high|urgent\",\"confidenceCategory\":0.0,\"confidencePriority\":0.0,\"shortSummary\":\"...\",\"analysisSummary\":\"...\",\"userSummary\":\"...\",\"moderatorSummary\":\"...\",\"employeeSummary\":\"...\",\"evidence\":[\"...\"],\"uncertainties\":[\"...\"],\"assumptions\":[\"...\"],\"needsClarification\":false,\"clarificationReason\":\"...\",\"categoryReason\":\"...\",\"subCategoryReason\":\"...\",\"priorityReason\":\"...\"}. confidenceCategory и confidencePriority - числа от 0 до 1.",
 		guardrails:
-			"Не используй general, если есть подходящая узкая категория. evidence должен содержать факты из фото/описания. uncertainties должен содержать то, что нельзя проверить по данным. shortSummary не должен быть копией описания пользователя.",
+			"Не используй general, если есть подходящая узкая категория из shortlist. evidence должен содержать факты из фото/описания. uncertainties должен содержать то, что нельзя проверить по данным. shortSummary не должен быть копией описания пользователя. Если confidence ниже 0.5, обязательно needsClarification=true и объясни почему.",
 		exampleInput: "Описание: На дороге большая яма. Фото: видна выбоина на проезжей части.",
 		exampleOutput:
-			"{\"category\":\"roads\",\"subCategory\":\"Ямы\",\"priority\":\"urgent\",\"shortSummary\":\"На проезжей части видна опасная выбоина, которая может мешать движению.\",\"analysisSummary\":\"Фото и описание указывают на повреждение дорожного покрытия. Основной риск связан с безопасностью транспорта и пешеходов.\",\"evidence\":[\"на фото виден дефект покрытия\",\"пользователь описывает яму на дороге\"],\"uncertainties\":[\"по фото нельзя точно измерить глубину ямы\"],\"assumptions\":[\"дефект находится на участке движения\"],\"needsClarification\":false,\"clarificationReason\":\"\",\"categoryReason\":\"Проблема относится к дорожному покрытию, а не к двору или мусору.\",\"subCategoryReason\":\"Подкатегория 'Ямы' точнее всего описывает видимый дефект.\",\"priorityReason\":\"Яма на дороге может создавать риск аварии, поэтому приоритет срочный.\"}",
+			"{\"category\":\"roads\",\"subCategory\":\"Ямы\",\"priority\":\"urgent\",\"confidenceCategory\":0.91,\"confidencePriority\":0.82,\"shortSummary\":\"На проезжей части видна опасная выбоина, которая может мешать движению.\",\"analysisSummary\":\"Фото и описание указывают на повреждение дорожного покрытия. Основной риск связан с безопасностью транспорта и пешеходов.\",\"userSummary\":\"Обращение похоже на проблему с дорожным покрытием и будет проверено модератором.\",\"moderatorSummary\":\"Категория roads выбрана по видимому дефекту покрытия и описанию ямы.\",\"employeeSummary\":\"Проверить участок дороги, оценить размер выбоины и необходимость ремонта покрытия.\",\"evidence\":[\"на фото виден дефект покрытия\",\"пользователь описывает яму на дороге\"],\"uncertainties\":[\"по фото нельзя точно измерить глубину ямы\"],\"assumptions\":[\"дефект находится на участке движения\"],\"needsClarification\":false,\"clarificationReason\":\"\",\"categoryReason\":\"Проблема относится к дорожному покрытию, а не к двору или мусору.\",\"subCategoryReason\":\"Подкатегория 'Ямы' точнее всего описывает видимый дефект.\",\"priorityReason\":\"Яма на дороге может создавать риск аварии, поэтому приоритет срочный.\"}",
 	},
 	appeal_create_analysis_playbook: {
 		version: PROMPT_VERSION,
@@ -149,6 +155,21 @@ const normalizeBoolean = (value) => {
 	return String(value || "").toLowerCase() === "true";
 };
 
+const clampConfidence = (value, fallback = 0.5) => {
+	const number = Number(value);
+	if (!Number.isFinite(number)) return fallback;
+	const normalized = number > 1 && number <= 100 ? number / 100 : number;
+	return Math.min(1, Math.max(0, normalized));
+};
+
+const getConfidenceLevel = (...values) => {
+	const normalizedValues = values.map((value) => clampConfidence(value)).filter(Number.isFinite);
+	const confidence = normalizedValues.length ? Math.min(...normalizedValues) : 0.5;
+	if (confidence >= CONFIDENCE_THRESHOLDS.high) return "high";
+	if (confidence >= CONFIDENCE_THRESHOLDS.medium) return "medium";
+	return "low";
+};
+
 const hasUsefulText = (value, minLength = 12) => String(value || "").trim().length >= minLength;
 
 const getPrompt = (key, promptMap) => {
@@ -184,6 +205,113 @@ const buildPromptText = (keys, promptMap, payload) => {
 			.filter(Boolean)
 			.join("\n\n"),
 	};
+};
+
+const getSearchText = ({ description = "", location = {}, vision = {} }) =>
+	[
+		description,
+		location?.address,
+		location?.label,
+		vision?.photoObservation,
+		...(Array.isArray(vision?.photoDetails) ? vision.photoDetails : []),
+	]
+		.map((item) => String(item || "").toLowerCase())
+		.filter(Boolean)
+		.join(" ");
+
+const splitSignalWords = (value) =>
+	String(value || "")
+		.toLowerCase()
+		.replace(/[^\p{L}\p{N}\s-]/gu, " ")
+		.split(/\s+/)
+		.map((item) => item.trim())
+		.filter((item) => item.length >= 4);
+
+const getCategorySignals = (category) => {
+	const playbook = (CATEGORY_PLAYBOOK || []).find((item) => item.key === category.key) || {};
+	const examples = Array.isArray(playbook.examples) ? playbook.examples : [];
+
+	return [
+		category.key,
+		category.name,
+		category.description,
+		...(Array.isArray(category.subcategories) ? category.subcategories : []),
+		...(Array.isArray(playbook.signs) ? playbook.signs : []),
+		...(Array.isArray(playbook.photoCues) ? playbook.photoCues : []),
+		...examples.flatMap((example) => [example.input, example.output]),
+	];
+};
+
+const scoreCategoryCandidate = ({ category, searchText, fallbackCategory }) => {
+	const signals = getCategorySignals(category);
+	let score = category.key === fallbackCategory ? 3 : 0;
+	const reasons = [];
+
+	for (const signal of signals) {
+		const normalizedSignal = String(signal || "").toLowerCase().trim();
+		if (!normalizedSignal) continue;
+
+		if (normalizedSignal.length >= 6 && searchText.includes(normalizedSignal)) {
+			score += 3;
+			reasons.push(`совпадение фразы "${normalizedSignal.slice(0, 60)}"`);
+			continue;
+		}
+
+		const matchedWords = splitSignalWords(normalizedSignal).filter((word) => searchText.includes(word));
+		if (matchedWords.length) {
+			score += Math.min(2.4, matchedWords.length * 0.6);
+			reasons.push(`ключевые слова: ${matchedWords.slice(0, 4).join(", ")}`);
+		}
+	}
+
+	if (category.key === "general") {
+		score -= 1.5;
+	}
+
+	return {
+		category,
+		score: Math.max(0, Number(score.toFixed(2))),
+		reasons: Array.from(new Set(reasons)).slice(0, 4),
+	};
+};
+
+const getTopCategoryCandidates = ({ description, location, vision, categories, fallbackCategory, topK = CATEGORY_CANDIDATE_LIMIT }) => {
+	const searchText = getSearchText({ description, location, vision });
+	const scored = (Array.isArray(categories) ? categories : [])
+		.map((category) => scoreCategoryCandidate({ category, searchText, fallbackCategory }))
+		.sort((a, b) => b.score - a.score || Number(a.category.order || 0) - Number(b.category.order || 0));
+
+	const selected = scored
+		.filter((item) => item.score > 0 || item.category.key === fallbackCategory)
+		.slice(0, topK);
+
+	if (!selected.some((item) => item.category.key === fallbackCategory)) {
+		const fallback = scored.find((item) => item.category.key === fallbackCategory);
+		if (fallback) selected.unshift(fallback);
+	}
+
+	if (!selected.length) {
+		selected.push(...scored.slice(0, topK));
+	}
+
+	const unique = [];
+	const keys = new Set();
+	for (const item of selected) {
+		if (keys.has(item.category.key)) continue;
+		keys.add(item.category.key);
+		unique.push(item);
+	}
+
+	if (!keys.has("general")) {
+		const general = scored.find((item) => item.category.key === "general");
+		if (general && unique.length < topK + 1) unique.push(general);
+	}
+
+	return unique.map((item) => ({
+		...item.category,
+		candidateScore: item.score,
+		candidateReasons: item.reasons,
+	}));
 };
 
 const fallbackAnalysis = ({ description, location }) => {
@@ -384,6 +512,7 @@ const runVisionAnalysis = async ({ promptMap, payload }) => {
 		photoDetails: normalizeList(json.photoDetails, 10),
 		photoRelevant: json.photoRelevant === undefined ? true : normalizeBoolean(json.photoRelevant),
 		photoMismatch: normalizeBoolean(json.photoMismatch),
+		confidencePhoto: clampConfidence(json.confidencePhoto, 0.5),
 		uncertainties: normalizeList(json.uncertainties, 6),
 	};
 };
@@ -403,6 +532,7 @@ const runClassificationAnalysis = async ({ promptMap, payload, categories, categ
 		systemInstruction,
 		prompt: [
 			userPrompt,
+			`Доступные category строго ограничены этим shortlist: ${categories.map((category) => category.key).join(", ")}.`,
 			"Верни только JSON по указанной схеме. Не добавляй status, deadlineAt, assignedEmployee или locationCheck.",
 		].join("\n\n"),
 		temperature: 0.2,
@@ -425,7 +555,6 @@ export const appealAiService = {
 		const promptMap = new Map(promptDocs.map((prompt) => [prompt.key, prompt]));
 		const chosenEmployee = await pickLeastBusyEmployee();
 		const categories = categoryDocs.length ? categoryDocs : DEFAULT_CATEGORIES.map((item) => ({ ...item }));
-		const categoryContext = formatCategoryContext(categories);
 		const fallback = fallbackAnalysis({
 			description: payload.description,
 			location: payload.location,
@@ -437,18 +566,27 @@ export const appealAiService = {
 			photoDetails: [],
 			photoRelevant: true,
 			photoMismatch: false,
+			confidencePhoto: 0.5,
 			uncertainties: [],
 		};
 		let classificationRaw = "";
 		let classification = {};
+		let candidateCategories = [];
 
 		try {
 			vision = await runVisionAnalysis({ promptMap, payload });
+			candidateCategories = getTopCategoryCandidates({
+				description: payload.description,
+				location: payload.location,
+				vision,
+				categories,
+				fallbackCategory: fallback.category,
+			});
 			const classificationResult = await runClassificationAnalysis({
 				promptMap,
 				payload,
-				categories,
-				categoryContext,
+				categories: candidateCategories,
+				categoryContext: formatCategoryContext(candidateCategories),
 				vision,
 			});
 			classificationRaw = classificationResult.raw;
@@ -459,10 +597,20 @@ export const appealAiService = {
 			};
 		}
 
+		if (!candidateCategories.length) {
+			candidateCategories = getTopCategoryCandidates({
+				description: payload.description,
+				location: payload.location,
+				vision,
+				categories,
+				fallbackCategory: fallback.category,
+			});
+		}
+
 		const category = normalizeCategory({
 			value: classification.category,
-			fallback: fallback.category,
-			categories,
+			fallback: candidateCategories[0]?.key || fallback.category,
+			categories: candidateCategories.length ? candidateCategories : categories,
 		});
 		const subCategory = normalizeSubCategory({
 			value: classification.subCategory,
@@ -490,13 +638,37 @@ export const appealAiService = {
 			...vision.uncertainties,
 			...normalizeList(classification.uncertainties, 8),
 		].slice(0, 10);
+		const confidenceCategory = clampConfidence(
+			classification.confidenceCategory,
+			category === fallback.category ? 0.66 : 0.58,
+		);
+		const confidencePriority = clampConfidence(classification.confidencePriority, 0.6);
+		const confidencePhoto = clampConfidence(vision.confidencePhoto, 0.5);
+		const confidenceLevel = getConfidenceLevel(confidenceCategory, confidencePriority, confidencePhoto);
+		const needsCarefulReview =
+			confidenceLevel === "medium" ||
+			confidenceCategory < CONFIDENCE_THRESHOLDS.high ||
+			confidencePriority < CONFIDENCE_THRESHOLDS.high ||
+			confidencePhoto < CONFIDENCE_THRESHOLDS.high;
+		const hasLowConfidence =
+			confidenceCategory < CONFIDENCE_THRESHOLDS.medium ||
+			confidencePriority < CONFIDENCE_THRESHOLDS.medium ||
+			confidencePhoto < CONFIDENCE_THRESHOLDS.medium;
 
 		const result = {
 			...fallback,
 			...classification,
+			analysisPipelineVersion: ANALYSIS_PIPELINE_VERSION,
+			promptVersion: PROMPT_VERSION,
 			category,
 			subCategory,
 			priority,
+			candidateCategories: candidateCategories.map((item) => ({
+				key: item.key,
+				name: item.name,
+				score: item.candidateScore,
+				reasons: item.candidateReasons || [],
+			})),
 			status: "moderation",
 			deadlineAt,
 			deadlineReason: getDeadlineReason(priority),
@@ -510,6 +682,11 @@ export const appealAiService = {
 			photoDetails,
 			photoRelevant: vision.photoRelevant,
 			photoMismatch: vision.photoMismatch,
+			confidenceCategory,
+			confidencePriority,
+			confidencePhoto,
+			confidenceLevel,
+			needsCarefulReview,
 			shortSummary: buildShortSummary({
 				description: payload.description,
 				photoObservation,
@@ -520,8 +697,11 @@ export const appealAiService = {
 			evidence: evidence.length ? evidence : photoDetails.slice(0, 6),
 			uncertainties,
 			assumptions: normalizeList(classification.assumptions, 8),
-			needsClarification: normalizeBoolean(classification.needsClarification) || !locationCheck || vision.photoMismatch,
-			clarificationReason: String(classification.clarificationReason || "").trim(),
+			needsClarification:
+				normalizeBoolean(classification.needsClarification) || !locationCheck || vision.photoMismatch || hasLowConfidence,
+			clarificationReason:
+				String(classification.clarificationReason || "").trim() ||
+				(hasLowConfidence ? "AI указал низкую уверенность, поэтому обращение требует дополнительной проверки." : ""),
 			categoryReason:
 				String(classification.categoryReason || "").trim() ||
 				`Категория "${category}" выбрана по совпадению описания, фото-наблюдений и справочника CityHelp.`,
