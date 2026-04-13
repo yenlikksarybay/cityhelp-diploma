@@ -3,13 +3,19 @@
     <div class="login__wrapper">
       <h1 class="login__title title-lg">Логин</h1>
 
-      <UiInput label="E-mail*" name="email" v-model="email" />
+      <UiInput
+        label="E-mail*"
+        name="email"
+        v-model="email"
+        @keyup.enter="checkLogin"
+      />
 
       <UiInput
         label="Пароль*"
         type="password"
         name="password"
         v-model="password"
+        @keyup.enter="checkLogin"
       />
 
       <p class="login__text">
@@ -24,7 +30,6 @@
         label="Войти"
         :is-loading="isLoading"
         @action="checkLogin"
-        @keyup.enter="checkLogin"
       />
     </div>
   </form>
@@ -32,9 +37,15 @@
 
 <script setup>
 const authStore = useAuthStore();
+const route = useRoute();
 const email = ref(null);
 const password = ref(null);
 const isLoading = ref(false);
+
+const getRedirectPath = () => {
+  const redirect = String(route.query?.redirect || "").trim();
+  return redirect.startsWith("/") ? redirect : "/panel";
+};
 
 const checkLogin = async () => {
   if (!email.value || !password.value) {
@@ -54,7 +65,7 @@ const checkLogin = async () => {
       body: { email: email.value, password: password.value },
     });
 
-    await authStore.setToken(res?.data?.token, "/panel");
+    await authStore.setToken(res?.data?.token, getRedirectPath());
     authStore.setAuthModal(false);
   } catch (error) {
     useNotify({

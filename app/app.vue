@@ -24,8 +24,18 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
+watch(
+  () => route.query?.auth,
+  (value) => {
+    authStore.setAuthModal(Boolean(value));
+  },
+  { immediate: true },
+);
+
 const closeModal = () => {
-  router.push({ path: route.path, query: {} });
+  const nextQuery = { ...route.query };
+  delete nextQuery.auth;
+  router.push({ path: route.path, query: nextQuery });
   authStore.setAuthModal(false);
 };
 </script>

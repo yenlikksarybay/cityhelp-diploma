@@ -3,10 +3,25 @@
     <div class="register__wrapper">
       <h1 class="register__title title-lg">Регистрация</h1>
       <div class="register__box">
-        <UiInput label="Имя*" name="firstName" v-model="form.firstName" />
-        <UiInput label="Фамилия*" name="lastName" v-model="form.lastName" />
+        <UiInput
+          label="Имя*"
+          name="firstName"
+          v-model="form.firstName"
+          @keyup.enter="checkRegister"
+        />
+        <UiInput
+          label="Фамилия*"
+          name="lastName"
+          v-model="form.lastName"
+          @keyup.enter="checkRegister"
+        />
       </div>
-      <UiInput label="E-mail*" name="email" v-model="form.email" />
+      <UiInput
+        label="E-mail*"
+        name="email"
+        v-model="form.email"
+        @keyup.enter="checkRegister"
+      />
 
       <UiInput
         label="Телефон*"
@@ -15,6 +30,7 @@
         name="phone"
         v-model="form.phone"
         :max-length="17"
+        @keyup.enter="checkRegister"
       />
 
       <UiInput
@@ -22,12 +38,14 @@
         type="password"
         name="password"
         v-model="form.password"
+        @keyup.enter="checkRegister"
       />
       <UiInput
         label="Подвервите пароль*"
         type="password"
         name="confirmPassword"
         v-model="form.confirmPassword"
+        @keyup.enter="checkRegister"
       />
 
       <p class="register__text">
@@ -40,7 +58,6 @@
         label="Зарегистрироваться"
         :is-loading="isLoading"
         @action="checkRegister"
-        @keyup.enter="checkRegister"
       />
     </div>
   </form>
@@ -48,6 +65,7 @@
 
 <script setup>
 const authStore = useAuthStore();
+const route = useRoute();
 const isLoading = ref(false);
 const form = reactive({
   firstName: "",
@@ -57,6 +75,11 @@ const form = reactive({
   password: "",
   confirmPassword: "",
 });
+
+const getRedirectPath = () => {
+  const redirect = String(route.query?.redirect || "").trim();
+  return redirect.startsWith("/") ? redirect : "/panel";
+};
 
 const checkRegister = async () => {
   if (!Object.values(form).every(Boolean)) {
@@ -81,7 +104,7 @@ const checkRegister = async () => {
       body: form,
     });
 
-    await authStore.setToken(res?.data?.token, "/panel");
+    await authStore.setToken(res?.data?.token, getRedirectPath());
     authStore.setAuthModal(false);
   } catch (error) {
     console.log(error);

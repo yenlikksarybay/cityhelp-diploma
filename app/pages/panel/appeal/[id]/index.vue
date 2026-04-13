@@ -130,6 +130,10 @@
 </template>
 
 <script setup>
+definePageMeta({
+  middleware: ["auth"],
+});
+
 const api = useApi();
 const asideStore = useAsideStore();
 const route = useRoute();
