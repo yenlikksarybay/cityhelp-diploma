@@ -6,6 +6,106 @@
         :visible="filteredPrompts.length"
       />
 
+      <div class="prompts__demo">
+        <div class="prompts__demo-head">
+          <div>
+            <h3 class="title-sm">Демо-тест AI</h3>
+            <p class="prompts__demo-text">
+              Выберите промт и обращение, чтобы прогнать анализ без сохранения в
+              базу.
+            </p>
+          </div>
+          <UiButton
+            class="primary-btn"
+            label="Запустить тест"
+            before-icon="ai-i"
+            icon-color="white"
+            icon-size="size-20"
+            :disabled="isTesting"
+            @action="runDemoTest"
+          />
+        </div>
+
+        <div class="prompts__demo-grid">
+          <UiSelect
+            v-model="selectedDemoPrompt"
+            label="Промт"
+            placeholder="Выберите промт"
+            :options="prompts"
+            :is-search="true"
+            :is-clear="false"
+          />
+          <UiSelect
+            v-model="selectedDemoAppeal"
+            label="Обращение"
+            placeholder="Выберите обращение"
+            :options="appealOptions"
+            :is-search="true"
+            :is-clear="false"
+          />
+        </div>
+
+        <div v-if="demoResult" class="prompts__demo-result">
+          <div class="prompts__demo-result-head">
+            <h4 class="title-sm">Результат теста</h4>
+            <p class="prompts__demo-result-meta">
+              {{ demoResult.meta }}
+            </p>
+          </div>
+          <div class="prompts__demo-sections">
+            <div class="prompts__demo-section">
+              <p class="prompts__demo-section-title">Краткий вывод</p>
+              <p class="prompts__demo-section-text">
+                {{ demoResult.shortSummary }}
+              </p>
+            </div>
+
+            <div class="prompts__demo-section">
+              <p class="prompts__demo-section-title">Как AI объяснил решение</p>
+              <p class="prompts__demo-section-text">
+                {{ demoResult.analysisSummary || "—" }}
+              </p>
+            </div>
+
+            <div
+              v-if="demoResult.evidence?.length || demoResult.uncertainties?.length"
+              class="prompts__demo-grid-details"
+            >
+              <div v-if="demoResult.evidence?.length" class="prompts__demo-section">
+                <p class="prompts__demo-section-title">Факты и наблюдения</p>
+                <ul class="prompts__demo-list">
+                  <li
+                    v-for="(item, index) in demoResult.evidence"
+                    :key="`evidence-${index}`"
+                  >
+                    {{ item }}
+                  </li>
+                </ul>
+              </div>
+              <div
+                v-if="demoResult.uncertainties?.length"
+                class="prompts__demo-section"
+              >
+                <p class="prompts__demo-section-title">Неопределённости</p>
+                <ul class="prompts__demo-list">
+                  <li
+                    v-for="(item, index) in demoResult.uncertainties"
+                    :key="`uncertainty-${index}`"
+                  >
+                    {{ item }}
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="prompts__demo-section">
+              <p class="prompts__demo-section-title">Детальный JSON</p>
+              <pre class="prompts__demo-pre">{{ demoResult.pretty }}</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <ThePanelAdminPromptsForm
         :form="form"
         :submitted="submitted"
@@ -37,6 +137,19 @@
       <UiUpToTop class="prompts__up" />
     </div>
   </section>
+
+  <UiModal
+    :is-open="isDemoProcessingOpen"
+    title="AI анализирует обращение"
+    max-width="720px"
+    @close="closeDemoProcessing"
+  >
+    <ModalsAiProcessing
+      :attempts="0"
+      title="AI анализирует выбранное обращение"
+      :messages="demoMessages"
+    />
+  </UiModal>
 </template>
 
 <script setup>
@@ -120,14 +233,36 @@ const createEmptyForm = () => ({
 });
 
 const prompts = ref([]);
+const appeals = ref([]);
 const selectedPromptId = ref(null);
 const selectedModule = ref(moduleOptions[0]);
 const selectedTone = ref(toneOptions[0]);
 const selectedFilterModule = ref(filterModuleOptions[0]);
+const selectedDemoPrompt = ref(null);
+const selectedDemoAppeal = ref(null);
+const demoResult = ref(null);
+const isDemoProcessingOpen = ref(false);
+const isTesting = ref(false);
 const search = ref("");
 const submitted = ref(false);
 const form = ref(createEmptyForm());
 const isLoading = ref(false);
+
+const appealOptions = computed(() =>
+  appeals.value.map((appeal) => ({
+    id: appeal.id,
+    name:
+      `${appeal.description || "Обращение"} · ${appeal.category || "без категории"}`.slice(
+        0,
+        120,
+      ),
+    description: appeal.description || "",
+    location: appeal.location || {},
+    photos: appeal.photos || [],
+    status: appeal.status || "",
+    priority: appeal.priority || "",
+  })),
+);
 
 const normalizePrompt = (prompt) => ({
   id: prompt.id,
@@ -154,9 +289,12 @@ const normalizePrompt = (prompt) => ({
 const loadPrompts = async () => {
   isLoading.value = true;
   try {
-    const response = await api.client({ url: "/ai/prompts", method: "get" });
+    const response = await useFetchSsr({ url: "/ai/prompts", method: "get" });
     const list = response?.data || response || [];
     prompts.value = list.map(normalizePrompt);
+    if (!selectedDemoPrompt.value && prompts.value.length) {
+      selectedDemoPrompt.value = prompts.value[0];
+    }
   } catch (error) {
     useNotify({
       title: "Промты",
@@ -166,6 +304,44 @@ const loadPrompts = async () => {
     prompts.value = [];
   } finally {
     isLoading.value = false;
+  }
+};
+
+const loadAppeals = async () => {
+  try {
+    const response = await useFetchSsr({
+      url: "/appeals",
+      method: "get",
+      params: {
+        role: "admin",
+        page: 1,
+        limit: 50,
+      },
+    });
+
+    appeals.value = (response?.data || response || []).map((appeal) => ({
+      id: appeal.id,
+      description: appeal.description || "",
+      category: appeal.category || "",
+      status: appeal.status || "",
+      priority: appeal.priority || "",
+      location: appeal.location || {},
+      photos: appeal.photos || [],
+    }));
+
+    if (!selectedDemoAppeal.value && appealOptions.value.length) {
+      selectedDemoAppeal.value = appealOptions.value[0];
+    }
+  } catch (error) {
+    useNotify({
+      title: "Промты",
+      text:
+        error?.statusMessage ||
+        error?.data?.statusMessage ||
+        "Не удалось загрузить обращения для теста",
+      status: "error",
+    });
+    appeals.value = [];
   }
 };
 
@@ -196,6 +372,59 @@ const filteredPrompts = computed(() => {
 
 const updateField = (field, value) => {
   form.value[field] = value;
+};
+
+const runDemoTest = async () => {
+  if (!selectedDemoPrompt.value?.id || !selectedDemoAppeal.value?.id) {
+    useNotify({
+      title: "Тест AI",
+      text: "Выберите промт и обращение для теста",
+      status: "error",
+    });
+    return;
+  }
+
+  isTesting.value = true;
+  isDemoProcessingOpen.value = true;
+  demoResult.value = null;
+
+  try {
+    const response = await api.client({
+      url: "/ai/prompts/test",
+      method: "post",
+      body: {
+        promptId: selectedDemoPrompt.value.id,
+        appealId: selectedDemoAppeal.value.id,
+      },
+    });
+
+    const data = response?.data || response || {};
+    const result = data?.result?.json || data?.result || {};
+    demoResult.value = {
+      meta: `Промт: ${selectedDemoPrompt.value.name} · Обращение: ${selectedDemoAppeal.value.name}`,
+      shortSummary: result.shortSummary || "—",
+      analysisSummary: result.analysisSummary || "—",
+      evidence: Array.isArray(result.evidence) ? result.evidence : [],
+      uncertainties: Array.isArray(result.uncertainties) ? result.uncertainties : [],
+      pretty: JSON.stringify(data, null, 2),
+    };
+  } catch (error) {
+    useNotify({
+      title: "Тест AI",
+      text:
+        error?.statusMessage ||
+        error?.data?.statusMessage ||
+        "Не удалось выполнить демо-тест",
+      status: "error",
+    });
+  } finally {
+    isTesting.value = false;
+    isDemoProcessingOpen.value = false;
+  }
+};
+
+const closeDemoProcessing = () => {
+  isDemoProcessingOpen.value = false;
 };
 
 const resetForm = () => {
@@ -295,7 +524,15 @@ const removePrompt = (id) => {
     });
 };
 
-onMounted(loadPrompts);
+const demoMessages = [
+  "AI читает описание и фото выбранного обращения...",
+  "Сверяем признаки проблемы, категорию и приоритет...",
+  "Проверяем дедлайн, назначение сотрудника и уровень уверенности...",
+  "Формируем подробный результат теста без записи в базу...",
+];
+
+await loadPrompts();
+await loadAppeals();
 </script>
 
 <style lang="scss" scoped>
@@ -306,11 +543,129 @@ onMounted(loadPrompts);
     gap: $gap-xxl;
   }
 
+  &__demo {
+    padding: 18px;
+    border-radius: $border-r-lg;
+    background-color: $white;
+    border: 1px solid $surface-200;
+    box-shadow: $box-shadow;
+    display: flex;
+    flex-direction: column;
+    gap: $gap-md;
+  }
+
+  &__demo-head {
+    display: flex;
+    justify-content: space-between;
+    gap: $gap-md;
+    align-items: flex-start;
+  }
+
+  &__demo-text {
+    color: $surface-500;
+    margin-top: 4px;
+  }
+
+  &__demo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $gap-md;
+  }
+
+  &__demo-result {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-sm;
+    padding: $padding-md;
+    border-radius: $border-r-md;
+    background-color: $surface-100;
+  }
+
+  &__demo-sections {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-md;
+  }
+
+  &__demo-grid-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $gap-md;
+  }
+
+  &__demo-section {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-xs;
+    padding: $padding-sm;
+    border-radius: $border-r-md;
+    background-color: $white;
+    border: 1px solid $surface-200;
+  }
+
+  &__demo-section-title {
+    font-weight: 700;
+  }
+
+  &__demo-section-text {
+    color: $surface-600;
+    line-height: 1.5;
+  }
+
+  &__demo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 18px;
+    list-style: disc;
+    color: $surface-600;
+  }
+
+  &__demo-result-head {
+    display: flex;
+    justify-content: space-between;
+    gap: $gap-md;
+    align-items: center;
+  }
+
+  &__demo-result-meta {
+    color: $surface-500;
+    font-size: 13px;
+  }
+
+  &__demo-pre {
+    padding: $padding-md;
+    border-radius: $border-r-md;
+    background-color: $surface-150;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
   &__up {
     position: fixed;
     bottom: 24px;
     right: 24px;
     z-index: 50;
+  }
+}
+
+@media (max-width: 900px) {
+  .prompts {
+    &__demo-head,
+    &__demo-result-head {
+      flex-direction: column;
+    }
+
+    &__demo-grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__demo-grid-details {
+      grid-template-columns: 1fr;
+    }
   }
 }
 </style>

@@ -9,7 +9,11 @@
       />
       <UiLoadImage v-else class="card__image" />
 
-      <UiStatus :text="statusText(card.status)" :status="normalizeUiStatus(card.status)" class="card__status" />
+      <UiStatus
+        :text="statusText(card.status)"
+        :status="normalizeUiStatus(card.status)"
+        class="card__status"
+      />
 
       <div class="card__content">
         <h4 class="card__title title-sm">{{ card.description }}</h4>
@@ -37,7 +41,8 @@ const props = defineProps({
 const lists = [
   {
     id: 1,
-    name: (card) => card.location?.address || card.location?.label || "Без адреса",
+    name: (card) =>
+      card.location?.address || card.location?.label || "Без адреса",
     icon: "location-i",
   },
   {
@@ -79,15 +84,7 @@ const statusText = (status) => {
 };
 
 const normalizeUiStatus = (status) => {
-  switch (status) {
-    case "completed":
-    case "rated":
-      return "solved";
-    case "rejected":
-      return "rejected";
-    default:
-      return "pending";
-  }
+  return String(status || "").toLowerCase();
 };
 </script>
 
@@ -122,6 +119,7 @@ const normalizeUiStatus = (status) => {
   &__image {
     height: 230px;
     width: 100%;
+    border-radius: $border-r-md;
   }
   &__ul {
     display: flex;

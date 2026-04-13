@@ -18,7 +18,16 @@
               {{ "Дата регистрации" }}
             </th>
             <th class="table__cell table__cell--head">
+              {{ "Локация" }}
+            </th>
+            <th class="table__cell table__cell--head">
               {{ "Сотрудник" }}
+            </th>
+            <th class="table__cell table__cell--head">
+              {{ "Закрыто" }}
+            </th>
+            <th class="table__cell table__cell--head">
+              {{ "Оценка" }}
             </th>
             <th class="table__cell table__cell--head">
               {{ "Статус" }}
@@ -34,10 +43,13 @@
               {{ row.description }}
             </td>
             <td class="table__cell">
-              <p>{{ row.category }}</p>
+              <p>{{ categoryLabel(row) }}</p>
             </td>
             <td class="table__cell">
-              <UiStatusText :status="normalizeUiStatus(row.priority)" :text="priorityText(row.priority)" />
+              <UiStatusText
+                :status="normalizeUiStatus(row.priority)"
+                :text="priorityText(row.priority)"
+              />
             </td>
             <td class="table__cell">
               {{ row.user?.name || row.user?.email || row.userName || "?" }}
@@ -45,17 +57,42 @@
             <td class="table__cell">
               {{ formatDateToDots(row.createdAt) || "?" }}
             </td>
-            <td class="table__cell">
-              {{ row.assignedEmployee?.name || row.employeeName || "Не назначен" }}
+            <td class="table__cell table__cell--location">
+              {{ row.location?.label || row.location?.address || "—" }}
             </td>
             <td class="table__cell">
-              <UiStatus :status="normalizeUiStatus(row.status)" :text="statusText(row.status)" />
+              {{
+                row.assignedEmployee?.name || row.employeeName || "Не назначен"
+              }}
+            </td>
+            <td class="table__cell">
+              {{ formatDateToDots(row.closedAt) || "—" }}
+            </td>
+            <td class="table__cell">
+              <span
+                v-if="
+                  row.rating?.score !== null && row.rating?.score !== undefined
+                "
+              >
+                {{ Number(row.rating.score).toFixed(1) }}
+              </span>
+              <span v-else>—</span>
+            </td>
+            <td class="table__cell">
+              <UiStatus
+                :status="normalizeUiStatus(row.status)"
+                :text="statusText(row.status)"
+              />
             </td>
             <td class="table__cell">
               <UiButton
                 tag="a"
                 :href="`/panel/appeal/${row.id}`"
                 label="Перейти"
+                after-icon="arrow-i"
+                icon-color="secondary-accent"
+                icon-size="size-24"
+                icon-deg="right"
                 class="secondary-btn"
               />
             </td>
@@ -87,6 +124,11 @@ const priorityText = (priority) => {
   }
 };
 
+const categoryLabel = (row) => {
+  const parts = [row.category, row.subCategory].filter(Boolean);
+  return parts.length ? parts.join(" / ") : "—";
+};
+
 const statusText = (status) => {
   switch (status) {
     case "completed":
@@ -105,17 +147,7 @@ const statusText = (status) => {
   }
 };
 
-const normalizeUiStatus = (status) => {
-  switch (status) {
-    case "completed":
-    case "rated":
-      return "solved";
-    case "rejected":
-      return "rejected";
-    default:
-      return "pending";
-  }
-};
+const normalizeUiStatus = (status) => String(status || "").toLowerCase();
 </script>
 
 <style lang="scss" scoped>
@@ -179,6 +211,9 @@ const normalizeUiStatus = (status) => {
       &:last-child {
         border-top-right-radius: $border-r-md;
       }
+    }
+    &--location {
+      min-width: 180px;
     }
     // &--actions {
     //   display: flex;

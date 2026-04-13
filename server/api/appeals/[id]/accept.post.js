@@ -4,6 +4,7 @@ import { AppealModel } from "../../../models/Appeal.js";
 import { UserModel } from "../../../models/User.js";
 import { verifyAuthToken } from "../../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
+import { createAppealTimelineEntry } from "../../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -42,11 +43,23 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 403, statusMessage: "Это обращение не назначено вам" });
 	}
 
-	if (["completed", "rated"].includes(appeal.status)) {
+	if (appeal.status !== "new") {
 		throw createError({ statusCode: 400, statusMessage: "Обращение уже завершено" });
 	}
 
 	appeal.status = "processing";
+	appeal.timeline = [
+		...(appeal.timeline || []),
+		createAppealTimelineEntry({
+			type: "employee_accept",
+			role: user.role,
+			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Сотрудник",
+			title: "Обращение принято в работу",
+			text: "Сотрудник подтвердил, что приступает к выполнению",
+			statusFrom: "new",
+			statusTo: "processing",
+		}),
+	];
 	await appeal.save();
 
 	return createSuccessResponse({

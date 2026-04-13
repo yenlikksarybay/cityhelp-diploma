@@ -183,6 +183,12 @@ const navs = computed(() => {
         icon: "circle-i",
       },
       {
+        name: "FAQ",
+        route: { path: "/panel/faq" },
+        path: "/panel/faq",
+        icon: "faq-i",
+      },
+      {
         name: "О 'CityHelp'",
         route: { path: "/panel/about-us" },
         path: "/panel/about-us",
@@ -191,7 +197,7 @@ const navs = computed(() => {
     ],
   });
 
-  if (roleStore.isSuperAdmin) {
+  if (roleStore.isAdmin || roleStore.isSuperAdmin) {
     showNav.push({
       id: 6,
       name: "Дополнительно",
@@ -207,6 +213,18 @@ const navs = computed(() => {
           route: { path: "/panel/admin/prompts" },
           path: "/panel/admin/prompts",
           icon: "ai-i",
+        },
+        {
+          name: "FAQ",
+          route: { path: "/panel/admin/faq" },
+          path: "/panel/admin/faq",
+          icon: "faq-i",
+        },
+        {
+          name: "Категории обращений",
+          route: { path: "/panel/admin/categories" },
+          path: "/panel/admin/categories",
+          icon: "list-appeal-i",
         },
       ],
     });
@@ -246,7 +264,7 @@ watch(
     padding: $padding-sm 0;
     box-shadow: $box-shadow;
     overflow-y: scroll;
-    max-height: 650px;
+    max-height: 97vh;
     overflow-x: hidden;
     &::-webkit-scrollbar {
       width: 0ch;

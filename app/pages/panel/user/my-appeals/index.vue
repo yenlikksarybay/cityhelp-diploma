@@ -7,12 +7,19 @@
       <div class="my-appeals__cards">
         <ThePanelUserMyAppealsCard v-for="card in filteredCards" :key="card.id" :card="card" />
       </div>
+
+      <UiPagination
+        v-if="pagination.totalPages > 1"
+        v-model="page"
+        :total="pagination.totalPages"
+      />
     </div>
   </section>
 </template>
 
 <script setup>
 const api = useApi();
+const route = useRoute();
 useSeo({ title: "Мои обращения" });
 
 const tabs = [
@@ -24,18 +31,42 @@ const tabs = [
   },
   {
     id: 2,
-    value: "solved",
-    name: "Решённые",
-    icon: "checkmark-i",
+    value: "new",
+    name: "Новые",
+    icon: "time-i",
   },
   {
     id: 3,
-    value: "processing",
-    name: "В процессе",
+    value: "moderation",
+    name: "Модерация",
     icon: "time-i",
   },
   {
     id: 4,
+    value: "processing",
+    name: "В работе",
+    icon: "time-i",
+  },
+  {
+    id: 5,
+    value: "needs_revision",
+    name: "Доработка",
+    icon: "time-i",
+  },
+  {
+    id: 6,
+    value: "completed",
+    name: "Завершённые",
+    icon: "checkmark-i",
+  },
+  {
+    id: 7,
+    value: "rated",
+    name: "Оценённые",
+    icon: "checkmark-i",
+  },
+  {
+    id: 8,
     value: "rejected",
     name: "Отклоненные",
     icon: "close",
@@ -43,26 +74,19 @@ const tabs = [
 ];
 const oneTab = ref(tabs[0]);
 const cards = ref([]);
-
-const statusFilterMap = computed(() => ({
-  all: null,
-  solved: ["completed", "rated"],
-  processing: ["new", "moderation", "processing", "needs_revision"],
-  rejected: ["rejected"],
-}));
-
-const filteredCards = computed(() => {
-  const status = oneTab.value?.value || "all";
-  const allowed = statusFilterMap.value[status];
-
-  if (!allowed) return cards.value;
-  return cards.value.filter((card) => allowed.includes(card.status));
+const page = ref(Number(route.query.page || 1));
+const pagination = ref({
+  totalPages: 1,
+  total: 0,
 });
+
+const filteredCards = computed(() => cards.value);
 
 const normalizeAppeal = (appeal) => ({
   id: appeal.id,
   description: appeal.description || "",
   category: appeal.category || "",
+  subCategory: appeal.subCategory || "",
   priority: appeal.priority || "medium",
   status: appeal.status || "new",
   location: appeal.location || {},
@@ -72,24 +96,43 @@ const normalizeAppeal = (appeal) => ({
 });
 
 const loadAppeals = async () => {
+  const tabValue = oneTab.value?.value || "all";
   const response = await api.client({
     url: "/appeals",
     method: "get",
-    params: { role: "user" },
+    params: {
+      role: "user",
+      page: page.value,
+      limit: 9,
+      statusGroup: tabValue === "all" ? undefined : tabValue,
+    },
   });
 
   cards.value = (response?.data || response || []).map(normalizeAppeal);
+  pagination.value = {
+    totalPages: Number(response?.meta?.totalPages || response?.data?.meta?.totalPages || 1),
+    total: Number(response?.meta?.total || response?.data?.meta?.total || 0),
+  };
 };
 
 const initialResponse = await useFetchSsr({
   url: "/appeals",
   method: "get",
-  params: { role: "user" },
+  params: { role: "user", page: page.value, limit: 9 },
 });
 
 cards.value = (initialResponse?.data || initialResponse || []).map(normalizeAppeal);
+pagination.value = {
+  totalPages: Number(initialResponse?.meta?.totalPages || initialResponse?.data?.meta?.totalPages || 1),
+  total: Number(initialResponse?.meta?.total || initialResponse?.data?.meta?.total || 0),
+};
 
 onMounted(loadAppeals);
+watch(page, loadAppeals);
+watch(oneTab, () => {
+  page.value = 1;
+  loadAppeals();
+});
 </script>
 
 <style lang="scss" scoped>

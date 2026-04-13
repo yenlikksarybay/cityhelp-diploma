@@ -8,7 +8,33 @@ export const useTitleStore = defineStore("title", () => {
 	const currentActiveRoute = computed(() => activeRoute.value)
 
 	const switchTitle = () => {
-		switch (route.path.replace(/^\/[a-z]{2}(?=\/|$)/, '')) {
+		const path = route.path.replace(/^\/[a-z]{2}(?=\/|$)/, '');
+
+		if (path.startsWith('/panel/admin/staff/')) {
+			title.value = "Сотрудник";
+			activeRoute.value = '/panel/admin/staff';
+			return;
+		}
+
+		if (path.startsWith('/panel/admin/users/')) {
+			title.value = "Пользователь";
+			activeRoute.value = '/panel/admin/users';
+			return;
+		}
+
+		if (path.startsWith('/panel/appeal/')) {
+			title.value = "Обращение";
+			activeRoute.value = '/panel/appeal';
+			return;
+		}
+
+		if (path.startsWith('/panel/edit-appeal/')) {
+			title.value = "Редактирование обращения";
+			activeRoute.value = '/panel/edit-appeal';
+			return;
+		}
+
+		switch (path) {
 			// Основные
 			case '/panel':
 				title.value = "Главная"
@@ -17,6 +43,10 @@ export const useTitleStore = defineStore("title", () => {
 			case '/panel/create-appeal':
 				title.value = "Создать обращение"
 				activeRoute.value = '/panel/create-appeal'
+				break;
+			case '/panel/profile':
+				title.value = "Профиль"
+				activeRoute.value = '/panel/profile'
 				break;
 
 		// User
@@ -38,6 +68,14 @@ export const useTitleStore = defineStore("title", () => {
 				title.value = "Сотрудники"
 				activeRoute.value = '/panel/admin/staff'
 				break;
+			case '/panel/admin/staff/':
+				title.value = "Сотрудник"
+				activeRoute.value = '/panel/admin/staff'
+				break;
+			case '/panel/admin/users/':
+				title.value = "Пользователь"
+				activeRoute.value = '/panel/admin/users'
+				break;
 			case '/panel/admin/translations':
 				title.value = "Переводы"
 				activeRoute.value = '/panel/admin/translations'
@@ -51,6 +89,18 @@ export const useTitleStore = defineStore("title", () => {
 			case '/panel/employee/appeals':
 				title.value = "Обращений"
 				activeRoute.value = '/panel/employee/appeals'
+				break;
+			case '/panel/faq':
+				title.value = "FAQ"
+				activeRoute.value = '/panel/faq'
+				break;
+			case '/panel/admin/faq':
+				title.value = "FAQ"
+				activeRoute.value = '/panel/admin/faq'
+				break;
+			case '/panel/admin/categories':
+				title.value = "Категории обращений"
+				activeRoute.value = '/panel/admin/categories'
 				break;
 
 			// Общие

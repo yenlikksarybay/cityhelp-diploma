@@ -18,7 +18,19 @@
               {{ "Колл. обращений" }}
             </th>
             <th class="table__cell table__cell--head">
+              {{ "Положительные" }}
+            </th>
+            <th class="table__cell table__cell--head">
+              {{ "Отрицательные" }}
+            </th>
+            <th class="table__cell table__cell--head">
+              {{ "Рейтинг" }}
+            </th>
+            <th class="table__cell table__cell--head">
               {{ "Дата регистрации" }}
+            </th>
+            <th class="table__cell table__cell--head">
+              {{ "Действие" }}
             </th>
           </tr>
         </thead>
@@ -37,10 +49,35 @@
               {{ row.email }}
             </td>
             <td class="table__cell">
-              {{ row.user_appeals_count }}
+              <span class="table__count table__count--primary">
+                {{ row.user_appeals_count || 0 }}
+              </span>
+            </td>
+            <td class="table__cell">
+              <span class="table__count table__count--success">
+                {{ row.positive_rating_count || 0 }}
+              </span>
+            </td>
+            <td class="table__cell">
+              <span class="table__count table__count--danger">
+                {{ row.negative_rating_count || 0 }}
+              </span>
+            </td>
+            <td class="table__cell">
+              <span class="table__count table__count--rating">
+                {{ formatRating(row.average_rating) }}
+              </span>
             </td>
             <td class="table__cell">
               {{ formatDateToDots(row.createdAt) || "?" }}
+            </td>
+            <td class="table__cell">
+              <UiButton
+                tag="a"
+                :href="`/panel/admin/staff/${row.id}`"
+                label="Подробнее"
+                class="table__link secondary-btn"
+              />
             </td>
           </tr>
         </tbody>
@@ -60,6 +97,14 @@ defineProps({
     default: false,
   },
 });
+
+const formatRating = (value) => {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) {
+    return "—";
+  }
+
+  return Number(value).toFixed(1);
+};
 </script>
 
 <style lang="scss" scoped>
@@ -114,6 +159,37 @@ defineProps({
       border: 1px solid $red-300;
       color: $red-300;
     }
+  }
+
+  &__count {
+    display: inline-flex;
+    min-width: 34px;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    &--primary {
+      background-color: rgba($green-500, 0.12);
+      color: $green-500;
+    }
+    &--success {
+      background-color: rgba($green-500, 0.12);
+      color: $green-500;
+    }
+    &--danger {
+      background-color: rgba($red-300, 0.12);
+      color: $red-300;
+    }
+    &--rating {
+      background-color: rgba($secondary-accent, 0.12);
+      color: $secondary-accent;
+    }
+  }
+
+  &__link {
+    min-width: 0;
+    width: fit-content;
+    justify-content: center;
   }
 }
 </style>

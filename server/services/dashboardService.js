@@ -1,7 +1,8 @@
 import { AppealModel } from "../models/Appeal.js";
 
-const ACTIVE_STATUSES = ["new", "moderation", "processing", "needs_revision"];
+const ACTIVE_STATUSES = ["new", "processing", "needs_revision"];
 const CLOSED_STATUSES = ["completed", "rated"];
+const HIDDEN_STATUSES = ["moderation"];
 
 const buildScopeFilter = (user) => {
 	return {
@@ -46,7 +47,10 @@ export const dashboardService = {
 
 	async getSummary(user) {
 		const scope = buildScopeFilter(user);
-		const match = scope.filter;
+		const match = {
+			...scope.filter,
+			status: { $nin: HIDDEN_STATUSES },
+		};
 
 		const statusCounts = await AppealModel.aggregate([
 			{ $match: match },
@@ -82,6 +86,7 @@ export const dashboardService = {
 		const scope = buildScopeFilter(user);
 		const appeals = await AppealModel.find({
 			...scope.filter,
+			status: { $nin: HIDDEN_STATUSES },
 			"location.x": { $type: "number" },
 			"location.y": { $type: "number" },
 		})
@@ -97,7 +102,10 @@ export const dashboardService = {
 
 	async getAppeals(user, limit = 9) {
 		const scope = buildScopeFilter(user);
-		const appeals = await AppealModel.find(scope.filter)
+		const appeals = await AppealModel.find({
+			...scope.filter,
+			status: { $nin: HIDDEN_STATUSES },
+		})
 			.sort({ createdAt: -1 })
 			.limit(Number(limit) || 9)
 			.populate("user", "firstName lastName email phone role")

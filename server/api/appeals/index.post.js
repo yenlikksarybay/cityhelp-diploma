@@ -5,6 +5,8 @@ import { UserModel } from "../../models/User.js";
 import { verifyAuthToken } from "../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../utils/createSuccessResponse.js";
 import { appealAiService } from "../../services/appealAiService.js";
+import mongoose from "mongoose";
+import { createAppealTimelineEntry } from "../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -73,6 +75,11 @@ const parseDeadlineDate = (deadlineDate) => {
 	return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const normalizeAppealId = (value) => {
+	const normalized = String(value || "").trim();
+	return mongoose.Types.ObjectId.isValid(normalized) ? normalized : null;
+};
+
 export default defineEventHandler(async (event) => {
 	await connectToDatabase(event);
 	const user = await getAuthUser(event);
@@ -80,6 +87,7 @@ export default defineEventHandler(async (event) => {
 	const description = String(body?.description || "").trim();
 	const location = normalizeLocation(body?.location);
 	const photos = normalizePhotos(body?.photos);
+	const appealId = normalizeAppealId(body?.appealId);
 
 	if (!description || description.length < 20) {
 		throw createError({ statusCode: 400, statusMessage: "Описание должно содержать минимум 20 символов" });
@@ -103,17 +111,64 @@ export default defineEventHandler(async (event) => {
 		photos,
 	});
 
+	const normalizedAiResult = {
+		...aiResult,
+		status: "moderation",
+		decision: {
+			categoryReason: String(aiResult.categoryReason || "").trim(),
+			priorityReason: String(aiResult.priorityReason || "").trim(),
+			deadlineReason: String(aiResult.deadlineReason || "").trim(),
+			locationReason: String(aiResult.locationReason || "").trim(),
+			statusReason: String(aiResult.statusReason || "").trim(),
+			assignedEmployeeReason: String(aiResult.assignedEmployeeReason || "").trim(),
+			analysisSummary: String(aiResult.analysisSummary || "").trim(),
+			evidence: Array.isArray(aiResult.evidence) ? aiResult.evidence : [],
+			uncertainties: Array.isArray(aiResult.uncertainties) ? aiResult.uncertainties : [],
+			assumptions: Array.isArray(aiResult.assumptions) ? aiResult.assumptions : [],
+			subCategoryReason: String(aiResult.subCategoryReason || "").trim(),
+		},
+	};
+
 	const appeal = await AppealModel.create({
+		...(appealId ? { _id: new mongoose.Types.ObjectId(appealId) } : {}),
 		user: user._id,
 		description,
 		photos,
 		location,
 		category: aiResult.category || "unclassified",
+		subCategory: aiResult.subCategory || "",
 		priority: aiResult.priority || "medium",
-		status: aiResult.status || "moderation",
+		status: "moderation",
 		deadlineAt: parseDeadlineDate(aiResult.deadlineDate),
 		assignedEmployee: aiResult.assignedEmployee?.id || null,
-		aiResult,
+		aiResult: normalizedAiResult,
+		timeline: [
+			createAppealTimelineEntry({
+				type: "ai_analysis",
+				role: "ai",
+				authorName: "CityHelp AI",
+				title: "Автоматический анализ",
+				text: normalizedAiResult.shortSummary || description,
+				statusTo: "moderation",
+				meta: {
+					category: normalizedAiResult.category || "unclassified",
+					subCategory: normalizedAiResult.subCategory || "",
+					priority: normalizedAiResult.priority || "medium",
+					deadlineDate: normalizedAiResult.deadlineDate || null,
+					assignedEmployee: normalizedAiResult.assignedEmployee || null,
+					categoryReason: normalizedAiResult.decision.categoryReason,
+					subCategoryReason: normalizedAiResult.decision.subCategoryReason,
+					priorityReason: normalizedAiResult.decision.priorityReason,
+					deadlineReason: normalizedAiResult.decision.deadlineReason,
+					statusReason: normalizedAiResult.decision.statusReason,
+					assignedEmployeeReason: normalizedAiResult.decision.assignedEmployeeReason,
+					analysisSummary: normalizedAiResult.decision.analysisSummary,
+					evidence: normalizedAiResult.decision.evidence,
+					uncertainties: normalizedAiResult.decision.uncertainties,
+					assumptions: normalizedAiResult.decision.assumptions,
+				},
+			}),
+		],
 	});
 
 	return createSuccessResponse({
@@ -124,12 +179,14 @@ export default defineEventHandler(async (event) => {
 			photos: appeal.photos,
 			location: appeal.location,
 			category: appeal.category,
+			subCategory: appeal.subCategory,
 			priority: appeal.priority,
 			status: appeal.status,
 			deadlineAt: appeal.deadlineAt,
 			deadlineDate: appeal.deadlineAt ? appeal.deadlineAt.toISOString().slice(0, 10) : null,
 			assignedEmployee: appeal.assignedEmployee ? String(appeal.assignedEmployee) : null,
 			aiResult: appeal.aiResult,
+			timeline: appeal.timeline,
 			createdAt: appeal.createdAt,
 		},
 	});

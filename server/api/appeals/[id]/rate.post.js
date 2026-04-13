@@ -4,6 +4,7 @@ import { AppealModel } from "../../../models/Appeal.js";
 import { UserModel } from "../../../models/User.js";
 import { verifyAuthToken } from "../../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
+import { createAppealTimelineEntry } from "../../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -55,6 +56,21 @@ export default defineEventHandler(async (event) => {
 		createdAt: new Date(),
 	};
 	appeal.status = "rated";
+	appeal.timeline = [
+		...(appeal.timeline || []),
+		createAppealTimelineEntry({
+			type: "user_rating",
+			role: user.role,
+			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Пользователь",
+			title: "Пользователь оценил обращение",
+			text: String(body?.comment || "").trim() || `Оценка: ${score}`,
+			statusFrom: "completed",
+			statusTo: "rated",
+			meta: {
+				score,
+			},
+		}),
+	];
 	await appeal.save();
 
 	return createSuccessResponse({

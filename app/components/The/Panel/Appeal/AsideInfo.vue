@@ -56,6 +56,24 @@ const statusText = (status) => {
   }
 };
 
+const statusVariant = (status) => {
+  switch (status) {
+    case "completed":
+    case "rated":
+      return "completed";
+    case "processing":
+      return "processing";
+    case "needs_revision":
+      return "needs_revision";
+    case "rejected":
+      return "rejected";
+    case "moderation":
+      return "moderation";
+    default:
+      return "new";
+  }
+};
+
 const priorityText = (priority) => {
   switch (priority) {
     case "urgent":
@@ -68,6 +86,12 @@ const priorityText = (priority) => {
       return "Средний";
   }
 };
+
+const hasModeratorEdit = computed(() =>
+  (props.appeal?.timeline || []).some(
+    (item) => item?.type === "moderator_edit",
+  ),
+);
 
 const lists = computed(() => [
   {
@@ -104,28 +128,35 @@ const lists = computed(() => [
   {
     key: "Статус:",
     value: statusText(props.appeal?.status),
-    status:
-      props.appeal?.status === "completed" || props.appeal?.status === "rated"
-        ? "solved"
-        : props.appeal?.status === "rejected"
-          ? "rejected"
-          : "pending",
+    status: statusVariant(props.appeal?.status),
   },
   {
     key: "Приоритетность:",
     value: priorityText(props.appeal?.priority),
     level:
-      props.appeal?.priority === "urgent" || props.appeal?.priority === "high"
-        ? "rejected"
-        : "pending",
+      props.appeal?.priority === "urgent"
+        ? "urgent"
+        : props.appeal?.priority === "high"
+          ? "high"
+          : props.appeal?.priority === "low"
+            ? "low"
+            : "medium",
   },
   {
     key: "Дата создания:",
     value: formatDate(props.appeal?.createdAt),
   },
   {
+    key: "Дата закрытия:",
+    value: formatDate(props.appeal?.closedAt),
+  },
+  {
     key: "Дедлайн:",
     value: formatDate(props.appeal?.deadlineAt),
+  },
+  {
+    key: "Исправление:",
+    value: hasModeratorEdit.value ? "Исправлено модератором" : "—",
   },
 ]);
 </script>
@@ -136,6 +167,10 @@ const lists = computed(() => [
     display: flex;
     flex-direction: column;
     gap: $gap-md;
+    box-shadow: $box-shadow;
+    padding: $padding-md;
+    border-radius: $border-r-md;
+    background-color: $white;
   }
   &__ul {
     display: flex;

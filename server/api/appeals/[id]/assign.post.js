@@ -4,6 +4,7 @@ import { AppealModel } from "../../../models/Appeal.js";
 import { UserModel } from "../../../models/User.js";
 import { verifyAuthToken } from "../../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
+import { createAppealTimelineEntry } from "../../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -53,6 +54,19 @@ export default defineEventHandler(async (event) => {
 	}
 
 	appeal.assignedEmployee = employee._id;
+	appeal.timeline = [
+		...(appeal.timeline || []),
+		createAppealTimelineEntry({
+			type: "admin_assign",
+			role: user.role,
+			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Администратор",
+			title: "Сотрудник назначен",
+			text: `${employee.firstName || ""} ${employee.lastName || ""}`.trim() || employee.email,
+			meta: {
+				employeeId: String(employee._id),
+			},
+		}),
+	];
 	await appeal.save();
 
 	return createSuccessResponse({

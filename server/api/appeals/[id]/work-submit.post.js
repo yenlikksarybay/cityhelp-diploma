@@ -4,6 +4,7 @@ import { AppealModel } from "../../../models/Appeal.js";
 import { UserModel } from "../../../models/User.js";
 import { verifyAuthToken } from "../../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
+import { createAppealTimelineEntry } from "../../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -110,6 +111,22 @@ export default defineEventHandler(async (event) => {
 	appeal.fixedImages = fixedImages;
 	appeal.employeeNote = employeeNote;
 	appeal.status = "moderation";
+	appeal.timeline = [
+		...(appeal.timeline || []),
+		createAppealTimelineEntry({
+			type: "employee_work",
+			role: user.role,
+			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Сотрудник",
+			title: "Работа передана на проверку",
+			text: employeeNote,
+			statusFrom: "processing",
+			statusTo: "moderation",
+			meta: {
+				fixedImagesCount: fixedImages.length,
+				hasFixedLocation: Boolean(fixedLocation),
+			},
+		}),
+	];
 	await appeal.save();
 
 	return createSuccessResponse({

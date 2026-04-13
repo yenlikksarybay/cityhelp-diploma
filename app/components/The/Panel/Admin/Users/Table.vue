@@ -20,6 +20,9 @@
             <th class="table__cell table__cell--head">
               {{ "Дата регистрации" }}
             </th>
+            <th class="table__cell table__cell--head">
+              {{ "Действие" }}
+            </th>
           </tr>
         </thead>
         <tbody class="table__body" v-if="rows.length">
@@ -37,10 +40,20 @@
               {{ row.email }}
             </td>
             <td class="table__cell">
-              {{ row.user_appeals_count }}
+              <span class="table__count table__count--primary">
+                {{ row.user_appeals_count || 0 }}
+              </span>
             </td>
             <td class="table__cell">
               {{ formatDateToDots(row.createdAt) || "?" }}
+            </td>
+            <td class="table__cell">
+              <UiButton
+                tag="a"
+                :href="`/panel/admin/users/${row.id}`"
+                label="Подробнее"
+                class="table__link secondary-btn"
+              />
             </td>
           </tr>
         </tbody>
@@ -114,6 +127,25 @@ defineProps({
       border: 1px solid $red-300;
       color: $red-300;
     }
+  }
+
+  &__count {
+    display: inline-flex;
+    min-width: 34px;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    &--primary {
+      background-color: rgba($green-500, 0.12);
+      color: $green-500;
+    }
+  }
+
+  &__link {
+    min-width: 0;
+    width: fit-content;
+    justify-content: center;
   }
 }
 </style>

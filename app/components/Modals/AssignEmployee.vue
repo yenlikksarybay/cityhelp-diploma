@@ -61,6 +61,7 @@ const selectedEmployee = computed({
     display: flex;
     flex-direction: column;
     gap: $gap-md;
+    min-height: 200px;
   }
   &__text {
     color: $surface-600;
@@ -70,6 +71,7 @@ const selectedEmployee = computed({
     display: flex;
     gap: $gap-md;
     justify-content: flex-end;
+    margin-top: auto;
   }
   &__btn {
     min-width: 140px;

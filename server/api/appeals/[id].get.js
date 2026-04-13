@@ -4,6 +4,7 @@ import { AppealModel } from "../../models/Appeal.js";
 import { UserModel } from "../../models/User.js";
 import { verifyAuthToken } from "../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../utils/createSuccessResponse.js";
+import { getAppealClosedAt, getAppealRoadmap, normalizeAppealTimeline } from "../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -44,6 +45,7 @@ export default defineEventHandler(async (event) => {
 			photos: appeal.photos,
 			location: appeal.location,
 			category: appeal.category,
+			subCategory: appeal.subCategory || "",
 			priority: appeal.priority,
 			status: appeal.status,
 			assignedEmployee: appeal.assignedEmployee,
@@ -57,6 +59,9 @@ export default defineEventHandler(async (event) => {
 			fixedImages: appeal.fixedImages,
 			rating: appeal.rating,
 			aiResult: appeal.aiResult,
+			closedAt: getAppealClosedAt(appeal.timeline),
+			roadmap: getAppealRoadmap(appeal.timeline),
+			timeline: normalizeAppealTimeline(appeal.timeline),
 			createdAt: appeal.createdAt,
 			updatedAt: appeal.updatedAt,
 		},

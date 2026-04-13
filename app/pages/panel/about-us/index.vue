@@ -6,12 +6,7 @@
       <div class="about__box">
         <h2 class="about__title title-md title-point">История</h2>
         <p class="about__text">
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Nobis
-          dolorum ipsum cumque ut adipisci. Corrupti quibusdam assumenda
-          asperiores. Voluptate minima, tempora quod iure aperiam assumenda
-          blanditiis libero exercitationem asperiores atque omnis eos sit.
-          Aliquam a numquam qui facere eaque iste modi minima amet suscipit nemo
-          repellat nisi adipisci, reiciendis fugiat.
+          {{ about.history }}
         </p>
       </div>
 
@@ -20,12 +15,7 @@
           Наша миссия
         </h2>
         <p class="about__text about__text--center">
-          Lorem ipsum dolor sit, amet consectetur adipisicing elit. Nobis
-          dolorum ipsum cumque ut adipisci. Corrupti quibusdam assumenda
-          asperiores. Voluptate minima, tempora quod iure aperiam assumenda
-          blanditiis libero exercitationem asperiores atque omnis eos sit.
-          Aliquam a numquam qui facere eaque iste modi minima amet suscipit nemo
-          repellat nisi adipisci, reiciendis fugiat.
+          {{ about.mission }}
         </p>
       </div>
 
@@ -33,6 +23,11 @@
         <h2 class="about__title about__title--right title-md title-point">
           Цифры о нас
         </h2>
+        <div class="about__values">
+          <span v-for="value in about.values" :key="value" class="about__value">
+            {{ value }}
+          </span>
+        </div>
         <div
           class="about__cards"
           :class="{ 'about__cards--aside': !asideStore.isOpen }"
@@ -49,26 +44,50 @@ const asideStore = useAsideStore();
 
 useSeo({ title: "О 'City Help'" });
 
-const info = [
+const about = ref({
+  history: "",
+  mission: "",
+  values: [],
+  stats: {},
+});
+
+const info = computed(() => [
   {
     name: "Колличество общих обращений",
-    number: "1490",
+    number: String(about.value.stats.totalAppeals || 0),
     bgColor: "yellow-400",
     color: "white",
   },
   {
     name: "Колличество пользователей",
-    number: "709",
+    number: String(about.value.stats.totalUsers || 0),
     bgColor: "green-400",
     color: "white",
   },
   {
     name: "Колличество сотрудников",
-    number: "145",
+    number: String(about.value.stats.totalEmployees || 0),
     bgColor: "red-300",
     color: "white",
   },
-];
+]);
+
+const loadAbout = async () => {
+  const response = await useFetchSsr({
+    url: "/about-us",
+    method: "get",
+  });
+
+  const data = response?.data || response || {};
+  about.value = {
+    history: data.history || "",
+    mission: data.mission || "",
+    values: Array.isArray(data.values) ? data.values : [],
+    stats: data.stats || {},
+  };
+};
+
+await loadAbout();
 </script>
 
 <style lang="scss" scoped>
@@ -98,6 +117,19 @@ const info = [
     display: flex;
     flex-direction: column;
     gap: $gap-md;
+  }
+  &__values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $gap-sm;
+  }
+  &__value {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background-color: $surface-100;
+    color: $surface-600;
+    box-shadow: $box-shadow;
+    font-weight: 500;
   }
   &__text {
     line-height: 120%;

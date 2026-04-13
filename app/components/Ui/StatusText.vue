@@ -11,6 +11,10 @@
           'status__text--completed': resolvedStatus === 'completed',
           'status__text--rated': resolvedStatus === 'rated',
           'status__text--rejected': resolvedStatus === 'rejected',
+          'status__text--info': resolvedVariant === 'info',
+          'status__text--warning': resolvedVariant === 'warning',
+          'status__text--success': resolvedVariant === 'success',
+          'status__text--danger': resolvedVariant === 'danger',
         }"
       >
         {{ resolvedText }}
@@ -22,6 +26,7 @@
 <script setup>
 import {
   getAppealLabel,
+  getAppealVariant,
 } from "../../../server/constants/appeal.js";
 
 const props = defineProps({
@@ -30,20 +35,13 @@ const props = defineProps({
 });
 
 const resolvedStatus = computed(() => String(props.status || "").toLowerCase());
+const resolvedVariant = computed(() => getAppealVariant(props.status));
 const resolvedText = computed(() => {
   return props.text || getAppealLabel(props.status) || props.status || "—";
 });
 </script>
 
 <style lang="scss" scoped>
-$status-new-color: #1d4ed8;
-$status-moderation-color: #6d28d9;
-$status-processing-color: #b45309;
-$status-needs-revision-color: #92400e;
-$status-completed-color: #15803d;
-$status-rated-color: #4d7c0f;
-$status-rejected-color: #b91c1c;
-
 .status {
   &__wrapper {
   }
@@ -67,6 +65,18 @@ $status-rejected-color: #b91c1c;
       color: $status-rated-color;
     }
     &--rejected {
+      color: $status-rejected-color;
+    }
+    &--info {
+      color: $status-new-color;
+    }
+    &--warning {
+      color: $status-processing-color;
+    }
+    &--success {
+      color: $status-completed-color;
+    }
+    &--danger {
       color: $status-rejected-color;
     }
   }

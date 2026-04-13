@@ -43,7 +43,8 @@ defineProps({
 const lists = [
   {
     id: 1,
-    name: (card) => card.location?.address || card.location?.label || "Без адреса",
+    name: (card) =>
+      card.location?.address || card.location?.label || "Без адреса",
     icon: "location-i",
   },
   {
@@ -79,21 +80,14 @@ const statusText = (status) => {
     case "rejected":
       return "Отклонено";
     case "moderation":
-    default:
       return "На модерации";
+    default:
+      return "Новое";
   }
 };
 
 const normalizeUiStatus = (status) => {
-  switch (status) {
-    case "completed":
-    case "rated":
-      return "solved";
-    case "rejected":
-      return "rejected";
-    default:
-      return "pending";
-  }
+  return String(status || "").toLowerCase();
 };
 </script>
 
@@ -128,6 +122,7 @@ const normalizeUiStatus = (status) => {
   &__image {
     height: 230px;
     width: 100%;
+    border-radius: $border-r-md;
   }
   &__ul {
     display: flex;

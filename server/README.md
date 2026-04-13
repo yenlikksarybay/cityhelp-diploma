@@ -19,6 +19,11 @@ Example flow:
 5) `server/models/Test.js`
 
 Blob test API:
-- `POST /api/blob/upload` - upload one image with `multipart/form-data` and field name `file`
-- `GET /api/blob/list` - list uploaded files from the current blob folder
+- `POST /api/blob/upload` - upload one image with `multipart/form-data`, field name `file`, optional `folder` field for the blob path prefix
+- `GET /api/blob/list` - list uploaded files from the appeal blob root folder
 - `DELETE /api/blob/delete?url=<blob-url>` - delete a file by blob URL
+
+Recommended appeal storage layout:
+- `cityhelp/appeals/<appealId>/photos/*` - user photos during creation
+- `cityhelp/appeals/<appealId>/fixed-images/*` - employee result photos
+- `cityhelp/appeals/<appealId>/...` - any appeal-specific attachments

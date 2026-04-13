@@ -18,15 +18,27 @@
       </div>
 
       <ThePanelAdminAppealsTable :rows="filteredAppeals" />
+
+      <UiPagination
+        v-if="pagination.totalPages > 1"
+        v-model="page"
+        :total="pagination.totalPages"
+      />
     </div>
   </section>
 </template>
 
 <script setup>
 const api = useApi();
+const route = useRoute();
 useSeo({ title: "Список обращений" });
 
 const search = ref("");
+const page = ref(Number(route.query.page || 1));
+const pagination = ref({
+  totalPages: 1,
+  total: 0,
+});
 const priorities = [
   {
     id: 0,
@@ -35,15 +47,20 @@ const priorities = [
   },
   {
     id: 1,
+    value: "urgent",
+    name: "Срочный",
+  },
+  {
+    id: 2,
     value: "high",
     name: "Высокий",
   },
   {
-    id: 2,
+    id: 3,
     value: "medium",
     name: "Средний",
   },
-  { id: 3, value: "low", name: "Низкий" },
+  { id: 4, value: "low", name: "Низкий" },
 ];
 const onePriority = ref(priorities[0]);
 
@@ -68,12 +85,24 @@ const tabs = [
   },
   {
     id: 4,
+    value: "needs_revision",
+    name: "На доработке",
+    icon: "time-i",
+  },
+  {
+    id: 5,
     value: "completed",
     name: "Завершенные",
     icon: "checkmark-i",
   },
   {
-    id: 5,
+    id: 6,
+    value: "rated",
+    name: "Оцененные",
+    icon: "checkmark-i",
+  },
+  {
+    id: 7,
     value: "rejected",
     name: "Отклоненные",
     icon: "close",
@@ -86,32 +115,20 @@ const normalizeAppeal = (appeal) => ({
   id: appeal.id,
   description: appeal.description || "",
   category: appeal.category || "",
+  subCategory: appeal.subCategory || "",
   priority: appeal.priority || "medium",
   status: appeal.status || "new",
   createdAt: appeal.createdAt,
   deadlineAt: appeal.deadlineAt,
+  closedAt: appeal.closedAt,
+  location: appeal.location || {},
   user: appeal.user || null,
   assignedEmployee: appeal.assignedEmployee || null,
+  employeeName: appeal.employeeName || "",
+  rating: appeal.rating || null,
 });
 
-const filteredAppeals = computed(() => {
-  const priority = onePriority.value?.value || "";
-  const status = oneTab.value?.value || "all";
-
-  return appeals.value.filter((item) => {
-    const matchesStatus = status === "all" ? true : item.status === status;
-    const matchesPriority = priority ? item.priority === priority : true;
-    const matchesSearch = search.value
-      ? [item.description, item.category, item.user?.name, item.assignedEmployee?.name]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase()
-          .includes(search.value.toLowerCase())
-      : true;
-
-    return matchesStatus && matchesPriority && matchesSearch;
-  });
-});
+const filteredAppeals = computed(() => appeals.value);
 
 const loadAppeals = async () => {
   const response = await api.client({
@@ -122,22 +139,43 @@ const loadAppeals = async () => {
       search: search.value || undefined,
       status: oneTab.value?.value !== "all" ? oneTab.value.value : undefined,
       priority: onePriority.value?.value || undefined,
+      page: page.value,
+      limit: 12,
     },
   });
 
   appeals.value = (response?.data || response || []).map(normalizeAppeal);
+  pagination.value = {
+    totalPages: Number(response?.meta?.totalPages || response?.data?.meta?.totalPages || 1),
+    total: Number(response?.meta?.total || response?.data?.meta?.total || 0),
+  };
 };
 
 const initialResponse = await useFetchSsr({
   url: "/appeals",
   method: "get",
-  params: { role: "admin" },
+  params: { role: "admin", page: page.value, limit: 12 },
 });
 
 appeals.value = (initialResponse?.data || initialResponse || []).map(normalizeAppeal);
+pagination.value = {
+  totalPages: Number(initialResponse?.meta?.totalPages || initialResponse?.data?.meta?.totalPages || 1),
+  total: Number(initialResponse?.meta?.total || initialResponse?.data?.meta?.total || 0),
+};
 
 useWatchDebounced(search, loadAppeals, { debounce: 350 });
-watch([oneTab, onePriority], loadAppeals);
+watch(search, () => {
+  page.value = 1;
+});
+watch([oneTab, onePriority], () => {
+  if (page.value === 1) {
+    loadAppeals();
+    return;
+  }
+
+  page.value = 1;
+});
+watch(page, loadAppeals);
 </script>
 
 <style lang="scss" scoped>

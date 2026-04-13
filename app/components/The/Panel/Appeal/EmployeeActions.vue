@@ -33,7 +33,7 @@ const props = defineProps({
   },
   statusType: {
     type: String,
-    default: "pending",
+    default: "new",
   },
   isSubmitting: {
     type: Boolean,

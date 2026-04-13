@@ -11,37 +11,37 @@ export const APPEAL_STATUS_KEYS = [
 export const APPEAL_STATUSES = {
 	new: {
 		label: "Новое",
-		variant: "info",
+		variant: "new",
 		icon: "time-i",
 	},
 	moderation: {
 		label: "На модерации",
-		variant: "info",
+		variant: "moderation",
 		icon: "time-i",
 	},
 	processing: {
 		label: "В работе",
-		variant: "warning",
+		variant: "processing",
 		icon: "time-i",
 	},
 	needs_revision: {
 		label: "Нужна доработка",
-		variant: "warning",
+		variant: "needs_revision",
 		icon: "time-i",
 	},
 	completed: {
 		label: "Завершено",
-		variant: "success",
+		variant: "completed",
 		icon: "checkmark-i",
 	},
 	rated: {
 		label: "Оценено",
-		variant: "success",
+		variant: "rated",
 		icon: "checkmark-i",
 	},
 	rejected: {
 		label: "Отклонено",
-		variant: "danger",
+		variant: "rejected",
 		icon: "close",
 	},
 };
@@ -63,6 +63,13 @@ export const APPEAL_PRIORITIES = {
 		label: "Срочный",
 		variant: "danger",
 	},
+};
+
+export const APPEAL_PRIORITY_DEADLINE_DAYS = {
+	low: 7,
+	medium: 4,
+	high: 3,
+	urgent: 1,
 };
 
 export const APPEAL_VARIANT_LABELS = {
@@ -88,16 +95,15 @@ export const getAppealPriorityMeta = (priority) => {
 
 export const getAppealVariant = (value) => {
 	const normalizedValue = String(value || "").toLowerCase();
-	const legacyVariant = {
-		pending: "info",
-		solved: "success",
-		rejected: "danger",
-	}[normalizedValue];
 
 	return (
 		getAppealStatusMeta(value)?.variant ||
 		getAppealPriorityMeta(value)?.variant ||
-		legacyVariant ||
+		{
+			pending: "info",
+			solved: "success",
+			rejected: "danger",
+		}[normalizedValue] ||
 		"info"
 	);
 };

@@ -21,10 +21,10 @@
       @keydown.enter.prevent="openFileDialog"
       @keydown.space.prevent="openFileDialog"
     >
-      <template v-if="previewUrl">
-        <img class="upload__preview" :src="previewUrl" alt="Фото превью" />
+      <template v-if="displayPreviewUrl">
+        <img class="upload__preview" :src="displayPreviewUrl" alt="Фото превью" />
         <div class="upload__overlay">
-          <p class="upload__name">{{ fileName }}</p>
+          <p class="upload__name">{{ fileName || previewName || "Текущий файл" }}</p>
           <div class="upload__actions">
             <button
               class="upload__btn"
@@ -36,7 +36,7 @@
             <button
               class="upload__btn upload__btn--danger"
               type="button"
-              @click.stop="removeFile"
+              @click.stop="isExternalPreview ? emit('delete-preview') : removeFile()"
             >
               Удалить
             </button>
@@ -66,6 +66,14 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  previewSrc: {
+    type: String,
+    default: "",
+  },
+  previewName: {
+    type: String,
+    default: "",
+  },
   accept: {
     type: String,
     default: "image/png,image/jpeg,image/webp",
@@ -76,7 +84,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:modelValue", "invalid-file"]);
+const emit = defineEmits(["update:modelValue", "invalid-file", "delete-preview"]);
 
 const fileInputRef = ref(null);
 const isDragging = ref(false);
@@ -85,6 +93,9 @@ const previewUrl = ref("");
 
 const fileName = computed(() => props.modelValue?.name || "");
 const hintText = computed(() => `PNG, JPG, WEBP до ${props.maxSizeMb}MB`);
+const displayPreviewUrl = computed(() => previewUrl.value || props.previewSrc || "");
+const isExternalPreview = computed(() => !props.modelValue && !!props.previewSrc);
+const previewName = computed(() => props.previewName || "");
 
 const clearPreviewUrl = () => {
   if (previewUrl.value) {

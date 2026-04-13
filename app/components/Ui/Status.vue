@@ -10,9 +10,13 @@
         'status__wrapper--completed': resolvedStatus === 'completed',
         'status__wrapper--rated': resolvedStatus === 'rated',
         'status__wrapper--rejected': resolvedStatus === 'rejected',
+        'status__wrapper--info': resolvedVariant === 'info',
+        'status__wrapper--warning': resolvedVariant === 'warning',
+        'status__wrapper--success': resolvedVariant === 'success',
+        'status__wrapper--danger': resolvedVariant === 'danger',
       }"
     >
-      <UiIcon :icon="defineIcon" color="white" size="size-24" />
+      <UiIcon :icon="defineIcon" :color="iconColorClass" size="size-24" />
       <p class="status__text">{{ resolvedText }}</p>
     </div>
   </div>
@@ -22,6 +26,7 @@
 import {
   getAppealIcon,
   getAppealLabel,
+  getAppealVariant,
 } from "../../../server/constants/appeal.js";
 
 const props = defineProps({
@@ -36,6 +41,7 @@ const props = defineProps({
 });
 
 const resolvedStatus = computed(() => String(props.status || "").toLowerCase());
+const resolvedVariant = computed(() => getAppealVariant(props.status));
 const resolvedText = computed(() => {
   return props.text || getAppealLabel(props.status) || "—";
 });
@@ -43,24 +49,30 @@ const resolvedText = computed(() => {
 const defineIcon = computed(() => {
   return getAppealIcon(props.status);
 });
+
+const iconColorClass = computed(() => {
+  switch (resolvedStatus.value) {
+    case "new":
+      return "status-new-color";
+    case "moderation":
+      return "status-moderation-color";
+    case "processing":
+      return "status-processing-color";
+    case "needs_revision":
+      return "status-needs-revision-color";
+    case "completed":
+      return "status-completed-color";
+    case "rated":
+      return "status-rated-color";
+    case "rejected":
+      return "status-rejected-color";
+    default:
+      return "status-new-color";
+  }
+});
 </script>
 
 <style lang="scss" scoped>
-$status-new-bg: #dbeafe;
-$status-new-color: #1d4ed8;
-$status-moderation-bg: #ede9fe;
-$status-moderation-color: #6d28d9;
-$status-processing-bg: #fef3c7;
-$status-processing-color: #b45309;
-$status-needs-revision-bg: #fde68a;
-$status-needs-revision-color: #92400e;
-$status-completed-bg: #dcfce7;
-$status-completed-color: #15803d;
-$status-rated-bg: #ecfccb;
-$status-rated-color: #4d7c0f;
-$status-rejected-bg: #fee2e2;
-$status-rejected-color: #b91c1c;
-
 .status {
   &__wrapper {
     display: flex;
@@ -94,6 +106,22 @@ $status-rejected-color: #b91c1c;
       color: $status-rated-color;
     }
     &--rejected {
+      background-color: $status-rejected-bg;
+      color: $status-rejected-color;
+    }
+    &--info {
+      background-color: $status-new-bg;
+      color: $status-new-color;
+    }
+    &--warning {
+      background-color: $status-processing-bg;
+      color: $status-processing-color;
+    }
+    &--success {
+      background-color: $status-completed-bg;
+      color: $status-completed-color;
+    }
+    &--danger {
       background-color: $status-rejected-bg;
       color: $status-rejected-color;
     }

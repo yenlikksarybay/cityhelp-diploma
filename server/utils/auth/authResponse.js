@@ -5,6 +5,8 @@ export const sanitizeUser = (user) => ({
 	lastName: user.lastName,
 	email: user.email,
 	phone: user.phone,
+	avatar: user.avatar || null,
+	avatarUrl: user.avatar?.url || "",
 	role: user.role,
 	isActive: user.isActive,
 	createdAt: user.createdAt,

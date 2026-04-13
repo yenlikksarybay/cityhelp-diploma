@@ -4,6 +4,7 @@ import { AppealModel } from "../../models/Appeal.js";
 import { UserModel } from "../../models/User.js";
 import { verifyAuthToken } from "../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../utils/createSuccessResponse.js";
+import { getAppealClosedAt, getAppealRoadmap, normalizeAppealTimeline } from "../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -28,18 +29,41 @@ export default defineEventHandler(async (event) => {
 	const query = getQuery(event);
 	const role = String(query.role || user.role || "user").toLowerCase();
 	const status = String(query.status || "").trim();
+	const statusGroup = String(query.statusGroup || "").trim();
 	const priority = String(query.priority || "").trim();
 	const search = String(query.search || "").trim();
+	const page = Math.max(1, Number(query.page || 1));
+	const limit = Math.min(50, Math.max(1, Number(query.limit || 12)));
+	const employeeVisibleStatuses = ["new", "processing", "needs_revision", "completed", "rated", "rejected"];
 
 	const filter = {};
 	if (role === "user") {
 		filter.user = user._id;
 	} else if (role === "employee") {
 		filter.assignedEmployee = user._id;
+		filter.status = { $in: employeeVisibleStatuses };
 	}
 
 	if (status) {
-		filter.status = status;
+		if (role === "employee") {
+			filter.status = employeeVisibleStatuses.includes(status) ? status : "__hidden__";
+		} else {
+			filter.status = status;
+		}
+	} else if (statusGroup) {
+		const statusGroupMap = {
+			new: ["new"],
+			moderation: ["moderation"],
+			processing: ["processing"],
+			needs_revision: ["needs_revision"],
+			completed: ["completed", "rated"],
+			rated: ["rated"],
+			rejected: ["rejected"],
+		};
+		const allowedStatuses = statusGroupMap[statusGroup];
+		if (allowedStatuses) {
+			filter.status = { $in: allowedStatuses };
+		}
 	}
 
 	if (priority) {
@@ -55,9 +79,13 @@ export default defineEventHandler(async (event) => {
 
 	const appeals = await AppealModel.find(filter)
 		.sort({ createdAt: -1 })
+		.skip((page - 1) * limit)
+		.limit(limit)
 		.populate("user", "firstName lastName email phone role")
 		.populate("assignedEmployee", "firstName lastName email phone role")
 		.lean();
+
+	const total = await AppealModel.countDocuments(filter);
 
 	const statusCounts = await AppealModel.aggregate([
 		{ $match: filter },
@@ -92,6 +120,7 @@ export default defineEventHandler(async (event) => {
 			photos: appeal.photos,
 			location: appeal.location,
 			category: appeal.category,
+			subCategory: appeal.subCategory || "",
 			priority: appeal.priority,
 			status: appeal.status,
 			assignedEmployee: appeal.assignedEmployee
@@ -107,12 +136,19 @@ export default defineEventHandler(async (event) => {
 			deadlineAt: appeal.deadlineAt,
 			rating: appeal.rating,
 			aiResult: appeal.aiResult,
+			closedAt: getAppealClosedAt(appeal.timeline),
+			roadmap: getAppealRoadmap(appeal.timeline),
+			timeline: normalizeAppealTimeline(appeal.timeline),
 			createdAt: appeal.createdAt,
 		})),
 		meta: {
-			total: appeals.length,
+			total,
+			page,
+			limit,
+			totalPages: Math.max(1, Math.ceil(total / limit)),
 			role,
 			status,
+			statusGroup,
 			priority,
 			search,
 			statusCounts: countsMap,

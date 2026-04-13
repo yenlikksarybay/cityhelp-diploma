@@ -47,6 +47,7 @@ const files = ref([]);
 const comment = ref("");
 const map = ref(null);
 const isSubmitting = ref(false);
+const appealId = ref("");
 
 const error = ref({
   stepOne: false,
@@ -54,11 +55,32 @@ const error = ref({
   stepThree: false,
 });
 
+const ensureAppealId = async () => {
+  if (appealId.value) return appealId.value;
+
+  const response = await api.client({
+    url: "/appeals/reserve",
+    method: "post",
+  });
+
+  const data = response?.data || response;
+  appealId.value = String(data?.appealId || "").trim();
+
+  if (!appealId.value) {
+    throw new Error("Не удалось подготовить обращение");
+  }
+
+  return appealId.value;
+};
+
 const uploadImage = async () => {
+  const draftId = await ensureAppealId();
+
   return await Promise.all(
     files.value.map(async (item) => {
       const formData = new FormData();
       formData.append("file", item.file);
+      formData.append("folder", `cityhelp/appeals/${draftId}/photos`);
 
       const response = await api.client({
         url: "/blob/upload",
@@ -85,6 +107,20 @@ const revokePreviewUrls = () => {
       URL.revokeObjectURL(item.preview);
     }
   });
+};
+
+const deleteUploadedFiles = async (items = []) => {
+  await Promise.allSettled(
+    (Array.isArray(items) ? items : [])
+      .filter((item) => item?.url)
+      .map((item) =>
+        api.client({
+          url: "/blob/delete",
+          method: "delete",
+          params: { url: item.url },
+        }),
+      ),
+  );
 };
 
 const postAppeal = async () => {
@@ -122,14 +158,16 @@ const postAppeal = async () => {
   }
 
   isSubmitting.value = true;
+  let uploaded = [];
 
   try {
-    const uploaded = await uploadImage();
+    uploaded = await uploadImage();
 
     await api.client({
       url: "/appeals",
       method: "post",
       body: {
+        appealId: appealId.value,
         description: comment.value,
         location: map.value,
         photos: uploaded,
@@ -146,8 +184,13 @@ const postAppeal = async () => {
     files.value = [];
     comment.value = "";
     map.value = null;
+    appealId.value = "";
     router.push("/panel/user/my-appeals");
   } catch (error) {
+    if (uploaded.length) {
+      await deleteUploadedFiles(uploaded);
+    }
+
     useNotify({
       title: "Ошибка",
       text:

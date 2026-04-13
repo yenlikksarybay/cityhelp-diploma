@@ -2,6 +2,40 @@ import mongoose from "mongoose";
 
 const ROLE_IDS = ["superadmin", "admin", "employee", "user"];
 
+const avatarSchema = new mongoose.Schema(
+	{
+		url: {
+			type: String,
+			trim: true,
+			default: "",
+		},
+		pathname: {
+			type: String,
+			trim: true,
+			default: "",
+		},
+		name: {
+			type: String,
+			trim: true,
+			default: "",
+		},
+		type: {
+			type: String,
+			trim: true,
+			default: "",
+		},
+		size: {
+			type: Number,
+			default: 0,
+		},
+		uploadedAt: {
+			type: Date,
+			default: null,
+		},
+	},
+	{ _id: false, versionKey: false },
+);
+
 const userSchema = new mongoose.Schema(
 	{
 		firstName: {
@@ -33,6 +67,10 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 			select: false,
+		},
+		avatar: {
+			type: avatarSchema,
+			default: null,
 		},
 		role: {
 			type: String,

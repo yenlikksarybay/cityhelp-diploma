@@ -12,7 +12,7 @@
 
       <div v-if="files.length" class="upload__list">
         <div v-for="(item, index) in files" :key="`${item.name}-${index}`" class="upload__item">
-          <img class="upload__thumb" :src="item.preview" :alt="item.name" />
+          <img class="upload__thumb" :src="item.preview || item.url" :alt="item.name" />
           <div class="upload__info">
             <p class="upload__name">{{ item.name }}</p>
             <p class="upload__size">{{ formatSize(item.size) }}</p>
@@ -60,11 +60,12 @@ watch(
       return;
     }
 
-    const nextFile = {
+  const nextFile = {
       file,
       name: file.name,
       size: file.size,
       preview: URL.createObjectURL(file),
+      isExisting: false,
     };
 
     files.value = [...files.value, nextFile];
@@ -75,7 +76,7 @@ watch(
 const removeImage = (index) => {
   const next = [...files.value];
   const [removed] = next.splice(index, 1);
-  if (removed?.preview) {
+  if (removed?.preview && String(removed.preview).startsWith("blob:")) {
     URL.revokeObjectURL(removed.preview);
   }
   files.value = next;
@@ -83,7 +84,7 @@ const removeImage = (index) => {
 
 onBeforeUnmount(() => {
   files.value.forEach((item) => {
-    if (item?.preview) {
+    if (item?.preview && String(item.preview).startsWith("blob:")) {
       URL.revokeObjectURL(item.preview);
     }
   });

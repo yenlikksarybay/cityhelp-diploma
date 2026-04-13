@@ -2,13 +2,13 @@
   <div class="profile" ref="profileRef" @click="setDropdown(!isOpenDropdown)">
     <div class="profile__wrapper">
       <img
+        v-if="avatarUrl"
         class="profile__avatar"
-        v-if="false"
-        src=""
-        alt="Daryn Bagdar User"
+        :src="avatarUrl"
+        :alt="user.name || 'Пользователь'"
       />
       <div v-else class="profile__avatar profile__avatar--default">
-        {{ user.name?.trim().split(" ")[0].charAt(0) || "" }}
+        {{ userInitials }}
       </div>
 
       <div class="profile__user">
@@ -25,7 +25,7 @@
             class="profile__li"
             v-for="list in profileList"
             :key="list.id"
-            @click="redirectTo(list)"
+            @click.stop="redirectTo(list)"
           >
             <UiIcon :icon="list.icon" size="size-24" />
             <p class="profile__li-text">{{ list.name }}</p>
@@ -44,26 +44,38 @@ const router = useRouter();
 const profileRef = ref(null);
 const isOpenDropdown = ref(false);
 const profileList = [
-  // {
-  //   id: 1,
-  //   name: "Профиль",
-  //   icon: "user-i",
-  //   route: "/profile/edit",
-  // },
   {
-    id: 3,
+    id: 1,
+    name: "Профиль",
+    icon: "user-i",
+    route: "/panel/profile",
+  },
+  {
+    id: 2,
     name: "Выйти",
     icon: "logout-i",
     route: "/",
   },
 ];
+const avatarUrl = computed(() => user.value?.avatar?.url || user.value?.avatarUrl || "");
+const userInitials = computed(() => {
+  const first = user.value?.firstName?.trim()?.[0] || "";
+  const last = user.value?.lastName?.trim()?.[0] || "";
+  const name = user.value?.name?.trim();
+
+  if (first || last) {
+    return `${first}${last}`.toUpperCase();
+  }
+
+  return name?.[0]?.toUpperCase() || "";
+});
 
 const setDropdown = (boolean) => {
   isOpenDropdown.value = boolean;
 };
 
 const redirectTo = (list) => {
-  if (list.id === 3) {
+  if (list.id === 2) {
     authStore.logout({ type: "auth" });
   } else {
     router.push(list.route);

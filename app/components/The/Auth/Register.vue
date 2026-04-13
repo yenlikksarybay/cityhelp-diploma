@@ -40,6 +40,7 @@
         label="Зарегистрироваться"
         :is-loading="isLoading"
         @action="checkRegister"
+        @keyup.enter="checkRegister"
       />
     </div>
   </form>

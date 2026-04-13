@@ -2,7 +2,7 @@
   <header class="header">
     <div class="header__wrapper">
       <div class="header__box">
-        <nuxt-link class="header__link" to="/">
+        <nuxt-link class="header__link" :to="authStore.isAuth ? '/panel' : '/'">
           <UiLogo class="header__logo" />
         </nuxt-link>
 
@@ -34,6 +34,7 @@
 <script setup>
 const titleStore = useTitleStore();
 const asideStore = useAsideStore();
+const authStore = useAuthStore();
 </script>
 
 <style lang="scss" scoped>

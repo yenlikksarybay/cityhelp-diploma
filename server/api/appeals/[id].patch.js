@@ -4,6 +4,7 @@ import { AppealModel } from "../../models/Appeal.js";
 import { UserModel } from "../../models/User.js";
 import { verifyAuthToken } from "../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../utils/createSuccessResponse.js";
+import { createAppealTimelineEntry } from "../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -34,25 +35,124 @@ export default defineEventHandler(async (event) => {
 	}
 
 	const isAdmin = user.role === "admin" || user.role === "superadmin";
+	const isOwner = String(appeal.user) === String(user._id);
+	const canEdit = appeal.status === "moderation" && (isAdmin || isOwner);
 
-	if (!isAdmin) {
-		throw createError({ statusCode: 403, statusMessage: "Доступ запрещён" });
+	if (!canEdit) {
+		throw createError({ statusCode: 403, statusMessage: "Редактирование доступно только на модерации" });
 	}
 
-	const fields = [
-		"status",
-		"assignedEmployee",
-		"moderationNote",
-		"category",
-		"priority",
-		"deadlineAt",
-	];
+	const originalPhotos = Array.isArray(appeal.photos) ? appeal.photos.map((item) => String(item?.url || "")).filter(Boolean) : [];
 
-	fields.forEach((field) => {
-		if (Object.prototype.hasOwnProperty.call(body || {}, field)) {
-			appeal[field] = body[field];
-		}
-	});
+	const normalizeLocation = (location) => {
+		if (!location || typeof location !== "object") return null;
+		const x = Number(location.x);
+		const y = Number(location.y);
+
+		if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+
+		return {
+			x,
+			y,
+			address: String(location.address || "").trim(),
+			label: String(location.label || "").trim(),
+		};
+	};
+
+	const normalizeImages = (images = []) => {
+		return (Array.isArray(images) ? images : [])
+			.map((image) => {
+				if (!image) return null;
+				const url = String(image.url || "").trim();
+				if (!url) return null;
+				return {
+					url,
+					pathname: String(image.pathname || "").trim(),
+					name: String(image.name || "").trim(),
+					type: String(image.type || "").trim(),
+					size: Number(image.size || 0),
+				};
+			})
+			.filter(Boolean)
+			.slice(0, 5);
+	};
+
+	const nextDescription = typeof body?.description === "string" ? body.description.trim() : appeal.description;
+	const nextLocation = normalizeLocation(body?.location) || appeal.location;
+	const nextPhotos = normalizeImages(body?.photos?.length ? body.photos : appeal.photos);
+	const nextCategory = typeof body?.category === "string" ? body.category.trim() || appeal.category : appeal.category;
+	const nextPriority = typeof body?.priority === "string" ? body.priority.trim() || appeal.priority : appeal.priority;
+	const nextDeadlineAt = body?.deadlineAt ? new Date(body.deadlineAt) : appeal.deadlineAt;
+	const nextModerationNote = typeof body?.moderationNote === "string" ? body.moderationNote.trim() : appeal.moderationNote;
+	const nextStatus = appeal.status;
+	const changes = [];
+
+	if (nextDescription !== appeal.description) {
+		appeal.description = nextDescription;
+		changes.push("description");
+	}
+
+	if (JSON.stringify(nextLocation) !== JSON.stringify(appeal.location)) {
+		appeal.location = nextLocation;
+		changes.push("location");
+	}
+
+	if (JSON.stringify(nextPhotos) !== JSON.stringify(appeal.photos)) {
+		appeal.photos = nextPhotos;
+		changes.push("photos");
+	}
+
+	if (isAdmin && nextCategory !== appeal.category) {
+		appeal.category = nextCategory;
+		changes.push("category");
+	}
+
+	if (isAdmin && nextPriority !== appeal.priority) {
+		appeal.priority = nextPriority;
+		changes.push("priority");
+	}
+
+	if (isAdmin && nextDeadlineAt && String(nextDeadlineAt) !== String(appeal.deadlineAt)) {
+		appeal.deadlineAt = nextDeadlineAt;
+		changes.push("deadlineAt");
+	}
+
+	if (isAdmin && nextModerationNote !== appeal.moderationNote) {
+		appeal.moderationNote = nextModerationNote;
+		changes.push("moderationNote");
+	}
+
+	if (changes.length && isAdmin) {
+		appeal.timeline = [
+			...(appeal.timeline || []),
+			createAppealTimelineEntry({
+				type: "moderator_edit",
+				role: user.role,
+				authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Администратор",
+				title: "Исправлено модератором",
+				text: "Обращение отредактировано до повторной проверки AI",
+				statusFrom: nextStatus,
+				statusTo: nextStatus,
+				meta: {
+					changes,
+				},
+			}),
+		];
+	} else if (changes.length) {
+		appeal.timeline = [
+			...(appeal.timeline || []),
+			createAppealTimelineEntry({
+				type: "user_edit",
+				role: user.role,
+				authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Пользователь",
+				title: "Обращение обновлено",
+				text: "Пользователь изменил данные обращения перед повторной проверкой",
+				statusFrom: nextStatus,
+				statusTo: nextStatus,
+				meta: { changes },
+			}),
+		];
+	}
 
 	await appeal.save();
 
@@ -66,6 +166,9 @@ export default defineEventHandler(async (event) => {
 			category: appeal.category,
 			priority: appeal.priority,
 			deadlineAt: appeal.deadlineAt,
+			description: appeal.description,
+			location: appeal.location,
+			photos: appeal.photos,
 			updatedAt: appeal.updatedAt,
 		},
 	});

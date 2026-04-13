@@ -31,6 +31,21 @@ const ratingSchema = new mongoose.Schema(
 	{ _id: false },
 );
 
+const timelineSchema = new mongoose.Schema(
+	{
+		type: { type: String, default: "system" },
+		role: { type: String, default: "system" },
+		authorName: { type: String, default: "" },
+		title: { type: String, default: "" },
+		text: { type: String, default: "" },
+		statusFrom: { type: String, default: null },
+		statusTo: { type: String, default: null },
+		meta: { type: mongoose.Schema.Types.Mixed, default: {} },
+		createdAt: { type: Date, default: Date.now },
+	},
+	{ _id: false },
+);
+
 const appealSchema = new mongoose.Schema(
 	{
 		user: {
@@ -61,6 +76,11 @@ const appealSchema = new mongoose.Schema(
 		category: {
 			type: String,
 			default: "unclassified",
+			index: true,
+		},
+		subCategory: {
+			type: String,
+			default: "",
 			index: true,
 		},
 		priority: {
@@ -109,6 +129,10 @@ const appealSchema = new mongoose.Schema(
 		rating: {
 			type: ratingSchema,
 			default: () => ({}),
+		},
+		timeline: {
+			type: [timelineSchema],
+			default: [],
 		},
 	},
 	{

@@ -24,6 +24,7 @@
         label="Войти"
         :is-loading="isLoading"
         @action="checkLogin"
+        @keyup.enter="checkLogin"
       />
     </div>
   </form>

@@ -4,12 +4,24 @@ import { buildBlobPath } from "../utils/blobPath.js";
 
 const MAX_FILE_SIZE = 4.5 * 1024 * 1024;
 
-const getBlobFolder = () => {
-	return process.env.BLOB_UPLOAD_FOLDER || "cityhelp/appeals/images";
+const getBlobRootFolder = () => {
+	return process.env.BLOB_APPEALS_ROOT_FOLDER || process.env.BLOB_UPLOAD_FOLDER || "cityhelp/appeals";
+};
+
+const normalizeFolder = (folder = "") => {
+	return String(folder || "")
+		.trim()
+		.replace(/^\/+|\/+$/g, "")
+		.replace(/\/+/g, "/");
+};
+
+const resolveUploadFolder = (folder) => {
+	const normalized = normalizeFolder(folder);
+	return normalized || normalizeFolder(getBlobRootFolder());
 };
 
 export const blobService = {
-	async uploadImage(file) {
+	async uploadImage(file, options = {}) {
 		if (!file) {
 			createErrorResponse(400, "Файл не передан");
 		}
@@ -25,7 +37,8 @@ export const blobService = {
 			);
 		}
 
-		const pathname = buildBlobPath(file.name, getBlobFolder());
+		const folder = resolveUploadFolder(options.folder);
+		const pathname = buildBlobPath(file.name, folder);
 		const arrayBuffer = await file.arrayBuffer();
 
 		return await put(pathname, arrayBuffer, {
@@ -35,9 +48,11 @@ export const blobService = {
 		});
 	},
 
-	async getFiles() {
+	async getFiles(prefix = null) {
+		const resolvedPrefix = normalizeFolder(prefix) || normalizeFolder(getBlobRootFolder());
+
 		return await list({
-			prefix: `${getBlobFolder()}/`,
+			prefix: `${resolvedPrefix}/`,
 			mode: "expanded",
 		});
 	},

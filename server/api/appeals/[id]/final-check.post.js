@@ -4,6 +4,7 @@ import { AppealModel } from "../../../models/Appeal.js";
 import { UserModel } from "../../../models/User.js";
 import { verifyAuthToken } from "../../../utils/auth/authToken.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
+import { createAppealTimelineEntry } from "../../../utils/appealTimeline.js";
 
 const getAuthUser = async (event) => {
 	const header = getHeader(event, "authorization");
@@ -33,18 +34,39 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 404, statusMessage: "Обращение не найдено" });
 	}
 
-	if (user.role !== "employee" && user.role !== "admin" && user.role !== "superadmin") {
+	if (user.role !== "admin" && user.role !== "superadmin") {
 		throw createError({ statusCode: 403, statusMessage: "Доступ запрещён" });
 	}
 
-	const isOk = Boolean(body?.isOk);
-	if (isOk) {
-		appeal.status = "completed";
-		appeal.employeeNote = String(body?.note || appeal.employeeNote || "");
-	} else {
-		appeal.status = "needs_revision";
-		appeal.employeeNote = String(body?.note || "Нужно доработать обращение");
+	if (appeal.status !== "moderation") {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Финальную проверку можно делать только после отправки сотрудником",
+		});
 	}
+
+	const isOk = Boolean(body?.isOk);
+	const note = String(body?.note || "").trim();
+	const nextStatus = isOk ? "completed" : "needs_revision";
+
+	appeal.status = nextStatus;
+	appeal.moderationNote = note || (isOk ? "Обращение завершено" : "Нужно доработать обращение");
+	appeal.timeline = [
+		...(appeal.timeline || []),
+		createAppealTimelineEntry({
+			type: "admin_final_check",
+			role: user.role,
+			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Администратор",
+			title: isOk ? "Проверка завершена" : "Отправлено на доработку",
+			text: note || (isOk ? "Выполнение подтверждено" : "Требуется доработка"),
+			statusFrom: "moderation",
+			statusTo: nextStatus,
+			meta: {
+				note,
+				decision: isOk ? "approved" : "needs_revision",
+			},
+		}),
+	];
 
 	await appeal.save();
 
@@ -53,7 +75,7 @@ export default defineEventHandler(async (event) => {
 		data: {
 			id: String(appeal._id),
 			status: appeal.status,
-			employeeNote: appeal.employeeNote,
+			moderationNote: appeal.moderationNote,
 			updatedAt: appeal.updatedAt,
 		},
 	});

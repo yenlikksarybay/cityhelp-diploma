@@ -53,6 +53,7 @@ export default defineNuxtConfig({
 		mongodbHost: "127.0.0.1:27017",
 		mongodbDatabase: "cityhelp",
 		serverPort: "",
+		authSecret: process.env.NUXT_AUTH_SECRET || "cityhelp-secret",
 		geminiApiKey: "AIzaSyAwc9C3Df-w_4NiTa-yd_M1jQ5Y5YaUGUY",
 		geminiModel: "gemini-1.5-flash",
 		public: {

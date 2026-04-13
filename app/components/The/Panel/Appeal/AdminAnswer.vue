@@ -11,23 +11,98 @@
           <p class="answer__date">{{ formatDate(props.appeal?.updatedAt || props.appeal?.createdAt) }}</p>
         </div>
         <p class="answer__comment">{{ text }}</p>
-        <div v-if="props.appeal?.employeeNote" class="answer__vision">
-          <p class="answer__vision-title">Комментарий сотрудника</p>
-          <p class="answer__vision-text">{{ props.appeal.employeeNote }}</p>
-        </div>
-        <div v-if="props.appeal?.moderationNote" class="answer__vision">
-          <p class="answer__vision-title">Комментарий проверки</p>
-          <p class="answer__vision-text">{{ props.appeal.moderationNote }}</p>
-        </div>
         <div v-if="props.appeal?.aiResult?.photoObservation" class="answer__vision">
           <p class="answer__vision-title">Что увидел AI на фото</p>
           <p class="answer__vision-text">{{ props.appeal.aiResult.photoObservation }}</p>
         </div>
-        <div v-if="props.appeal?.aiResult?.deadlineDate" class="answer__vision">
-          <p class="answer__vision-title">Дедлайн по AI</p>
-          <p class="answer__vision-text">{{ props.appeal.aiResult.deadlineDate }}</p>
+        <div v-if="props.appeal?.aiResult?.analysisSummary" class="answer__vision">
+          <p class="answer__vision-title">Как AI объяснил решение</p>
+          <p class="answer__vision-text">{{ props.appeal.aiResult.analysisSummary }}</p>
+        </div>
+        <div
+          v-if="props.appeal?.aiResult?.evidence?.length"
+          class="answer__vision"
+        >
+          <p class="answer__vision-title">На чём основан вывод</p>
+          <ul class="answer__list">
+            <li
+              v-for="(item, index) in props.appeal.aiResult.evidence"
+              :key="`evidence-${index}`"
+              class="answer__list-item"
+            >
+              {{ item }}
+            </li>
+          </ul>
+        </div>
+        <div
+          v-if="props.appeal?.aiResult?.uncertainties?.length"
+          class="answer__vision"
+        >
+          <p class="answer__vision-title">Что AI не смог точно определить</p>
+          <ul class="answer__list">
+            <li
+              v-for="(item, index) in props.appeal.aiResult.uncertainties"
+              :key="`uncertainty-${index}`"
+              class="answer__list-item"
+            >
+              {{ item }}
+            </li>
+          </ul>
+        </div>
+        <div v-if="props.appeal?.aiResult?.decision" class="answer__vision">
+          <p class="answer__vision-title">Почему AI так решил</p>
+          <ul class="answer__reasons">
+            <li
+              v-for="item in decisionReasons"
+              :key="item.key"
+              class="answer__reason"
+            >
+              <span class="answer__reason-label">{{ item.label }}</span>
+              <span class="answer__reason-value">{{ item.value }}</span>
+            </li>
+          </ul>
         </div>
       </div>
+
+      <div v-if="timeline.length" class="answer__timeline">
+        <div class="answer__timeline-head">
+          <h5 class="answer__timeline-title">История обращения</h5>
+        </div>
+        <div class="answer__steps">
+          <article
+            v-for="(item, index) in timeline"
+            :key="`${item.type}-${index}-${item.createdAt}`"
+            class="answer__step"
+          >
+            <div class="answer__step-head">
+              <div class="answer__step-meta">
+                <p class="answer__step-title">{{ item.title || 'Комментарий' }}</p>
+                <p class="answer__step-author">
+                  {{ item.authorName || roleLabel(item.role) }}
+                </p>
+              </div>
+              <p class="answer__step-date">{{ formatDate(item.createdAt) }}</p>
+            </div>
+            <p v-if="item.text" class="answer__step-text">{{ item.text }}</p>
+            <div v-if="item.statusFrom || item.statusTo" class="answer__step-status">
+              <span v-if="item.statusFrom">{{ statusText(item.statusFrom) }}</span>
+              <UiIcon icon="arrow-i" size="size-16" />
+              <span v-if="item.statusTo">{{ statusText(item.statusTo) }}</span>
+            </div>
+            <div v-if="item.meta && Object.keys(item.meta).length" class="answer__step-meta-list">
+              <p
+                v-for="metaItem in formatMeta(item.meta)"
+                :key="metaItem.key"
+                class="answer__step-meta-item"
+              >
+                <span class="answer__step-meta-key">{{ metaItem.label }}:</span>
+                <span class="answer__step-meta-value">{{ metaItem.value }}</span>
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+
       <div v-else class="answer__empty">
         Пока нет ответа
       </div>
@@ -43,24 +118,116 @@ const props = defineProps({
   },
 });
 
+const timeline = computed(() => (props.appeal?.timeline || []).slice().sort(
+  (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0),
+));
+
 const authorLabel = computed(() => {
+  const latest = [...timeline.value].pop();
+  if (latest?.role === "ai") return "AI";
+  if (latest?.role === "employee") return "Сотрудник";
+  if (latest?.role === "admin") return "Администратор";
   if (props.appeal?.employeeNote) return "Сотрудник";
-  if (props.appeal?.moderationNote) return "Модератор";
+  if (props.appeal?.moderationNote) return "Администратор";
   return "AI";
 });
 
 const authorName = computed(() => {
+  const latest = [...timeline.value].pop();
+  if (latest?.authorName) return latest.authorName;
   return props.appeal?.assignedEmployee?.name || "CityHelp";
 });
 
 const text = computed(() => {
   return (
+    props.appeal?.aiResult?.shortSummary ||
     props.appeal?.employeeNote ||
     props.appeal?.moderationNote ||
-    props.appeal?.aiResult?.shortSummary ||
     ""
   );
 });
+
+const roleLabel = (role) => {
+  switch (role) {
+    case "ai":
+      return "AI";
+    case "employee":
+      return "Сотрудник";
+    case "admin":
+      return "Администратор";
+    default:
+      return "CityHelp";
+  }
+};
+
+const statusText = (status) => {
+  switch (status) {
+    case "new":
+      return "Новое";
+    case "moderation":
+      return "На модерации";
+    case "processing":
+      return "В работе";
+    case "needs_revision":
+      return "Нужна доработка";
+    case "completed":
+      return "Завершено";
+    case "rated":
+      return "Оценено";
+    case "rejected":
+      return "Отклонено";
+    default:
+      return status || "—";
+  }
+};
+
+const decisionReasons = computed(() => {
+  const decision = props.appeal?.aiResult?.decision || {};
+  return [
+    { key: "category", label: "Категория", value: decision.categoryReason || "—" },
+    { key: "priority", label: "Приоритет", value: decision.priorityReason || "—" },
+    { key: "deadline", label: "Дедлайн", value: decision.deadlineReason || "—" },
+    { key: "status", label: "Статус", value: decision.statusReason || "—" },
+    {
+      key: "employee",
+      label: "Сотрудник",
+      value: decision.assignedEmployeeReason || "—",
+    },
+    { key: "location", label: "Локация", value: decision.locationReason || "—" },
+  ].filter((item) => String(item.value || "").trim() && item.value !== "—");
+});
+
+const formatMeta = (meta = {}) => {
+  const entries = [];
+  if (meta.category) entries.push({ key: "category", label: "Категория", value: meta.category });
+  if (meta.priority) entries.push({ key: "priority", label: "Приоритет", value: meta.priority });
+  if (meta.deadlineDate) entries.push({ key: "deadlineDate", label: "Дедлайн", value: meta.deadlineDate });
+  if (meta.assignedEmployee?.name) {
+    entries.push({
+      key: "assignedEmployee",
+      label: "Сотрудник",
+      value: meta.assignedEmployee.name,
+    });
+  }
+  if (meta.note) entries.push({ key: "note", label: "Комментарий", value: meta.note });
+  if (meta.decision) entries.push({ key: "decision", label: "Решение", value: meta.decision });
+  if (meta.score) entries.push({ key: "score", label: "Оценка", value: meta.score });
+  if (meta.fixedImagesCount !== undefined) {
+    entries.push({
+      key: "fixedImagesCount",
+      label: "Фото результата",
+      value: String(meta.fixedImagesCount),
+    });
+  }
+  if (meta.hasFixedLocation !== undefined) {
+    entries.push({
+      key: "hasFixedLocation",
+      label: "Новая локация",
+      value: meta.hasFixedLocation ? "Да" : "Нет",
+    });
+  }
+  return entries;
+};
 
 const formatDate = (value) => {
   if (!value) return "—";
@@ -117,6 +284,106 @@ const formatDate = (value) => {
   }
   &__vision-text {
     line-height: 130%;
+    color: $surface-600;
+  }
+  &__reasons {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-sm;
+  }
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 18px;
+    list-style: disc;
+  }
+  &__list-item {
+    line-height: 1.45;
+    color: $surface-600;
+  }
+  &__reason {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: $padding-sm;
+    border-radius: $border-r-sm;
+    background-color: $surface-100;
+  }
+  &__reason-label {
+    font-size: 12px;
+    color: $surface-500;
+  }
+  &__reason-value {
+    line-height: 130%;
+    color: $surface-600;
+  }
+  &__timeline {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-md;
+    padding-top: $padding-md;
+    border-top: 1px solid $surface-200;
+  }
+  &__timeline-title {
+    font-weight: 700;
+  }
+  &__steps {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-md;
+  }
+  &__step {
+    display: flex;
+    flex-direction: column;
+    gap: $gap-sm;
+    padding: $padding-md;
+    border-radius: $border-r-md;
+    background-color: $surface-100;
+  }
+  &__step-head {
+    display: flex;
+    justify-content: space-between;
+    gap: $gap-md;
+    align-items: flex-start;
+  }
+  &__step-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  &__step-title {
+    font-weight: 700;
+  }
+  &__step-author,
+  &__step-date {
+    font-size: 12px;
+    color: $surface-500;
+  }
+  &__step-text {
+    line-height: 130%;
+    color: $surface-600;
+  }
+  &__step-status {
+    display: flex;
+    align-items: center;
+    gap: $gap-sm;
+    font-size: 12px;
+    color: $surface-500;
+  }
+  &__step-meta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  &__step-meta-item {
+    font-size: 13px;
+    line-height: 130%;
+  }
+  &__step-meta-key {
+    color: $surface-500;
+  }
+  &__step-meta-value {
     color: $surface-600;
   }
   &__empty {

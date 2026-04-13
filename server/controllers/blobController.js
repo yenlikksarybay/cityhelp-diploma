@@ -5,7 +5,8 @@ import { createSuccessResponse } from "../utils/createSuccessResponse.js";
 export const uploadBlobFile = async (event) => {
 	const formData = await readFormData(event);
 	const file = formData.get("file");
-	const uploadedFile = await blobService.uploadImage(file);
+	const folder = String(formData.get("folder") || "").trim();
+	const uploadedFile = await blobService.uploadImage(file, { folder });
 
 	return createSuccessResponse({
 		message: "Файл загружен в Vercel Blob",

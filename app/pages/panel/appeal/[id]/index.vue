@@ -7,13 +7,12 @@
         </h2>
         <div class="appeal__top-inner">
           <UiButton
-            v-if="canDelete"
-            before-icon="trash-i"
-            icon-size="size-24"
-            icon-color="red-300"
-            class="appeal__btn appeal__btn--delete secondary-btn"
-            label="Удалить обращение"
-            @action="openDeleteModal"
+            class="appeal__btn secondary-btn"
+            label="Действия"
+            before-icon="more-vertical-i"
+            icon-size="size-20"
+            icon-color="secondary-accent"
+            @action="openActionsModal"
           />
         </div>
       </div>
@@ -59,13 +58,13 @@
         >
           <div class="appeal__aside-inner">
             <ThePanelAppealAsideInfo :appeal="appeal" />
-
             <UiButton
               v-if="canAssignEmployee"
               class="appeal__aside-btn secondary-btn"
               label="Назначить сотрудника"
               @action="openAssignModal"
             />
+            <ThePanelAppealRoadmap :roadmap="appeal?.roadmap || []" />
           </div>
         </div>
       </div>
@@ -86,7 +85,7 @@
   <UiModal
     :is-open="isOpenAssignModal"
     title="Назначить сотрудника"
-    max-width="640px"
+    max-width="600px"
     @close="closeAssignModal"
   >
     <ModalsAssignEmployee
@@ -95,6 +94,37 @@
       :is-submitting="isAssignSubmitting"
       @close="closeAssignModal"
       @save="assignEmployee"
+    />
+  </UiModal>
+
+  <UiModal
+    :is-open="isOpenAiRecheckModal"
+    title="Перепроверка AI"
+    max-width="600px"
+    @close="closeAiRecheckModal"
+  >
+    <ModalsAiProcessing
+      :attempts="0"
+      title="AI перепроверяет обращение"
+      :messages="aiMessages"
+    />
+  </UiModal>
+
+  <UiModal
+    :is-open="isOpenActionsModal"
+    title="Действия с обращением"
+    max-width="520px"
+    @close="closeActionsModal"
+  >
+    <ModalsAppealActionsMenu
+      :appeal-id="route.params.id"
+      :show-edit="canEditAppeal"
+      :show-recheck="canRecheckAi"
+      :show-assign="canAssignEmployee"
+      :show-delete="canDelete"
+      @recheck="openAiRecheckModal"
+      @assign="openAssignModal"
+      @delete="openDeleteModal"
     />
   </UiModal>
 </template>
@@ -113,11 +143,14 @@ const selectedEmployee = ref(null);
 
 const isOpenDeleteModal = ref(false);
 const isOpenAssignModal = ref(false);
+const isOpenAiRecheckModal = ref(false);
+const isOpenActionsModal = ref(false);
 const isEmployeeSubmitting = ref(false);
 const isAssignSubmitting = ref(false);
 const isWorkSubmitting = ref(false);
 const isReviewSubmitting = ref(false);
 const isRatingSubmitting = ref(false);
+const isAiRecheckSubmitting = ref(false);
 
 const currentUserId = computed(() =>
   String(authStore.getUser?.id || authStore.getUser?._id || ""),
@@ -162,16 +195,26 @@ const canDelete = computed(
     (isOwner.value && currentAppealOwnerId.value),
 );
 
+const canEditAppeal = computed(
+  () =>
+    appeal.value?.status === "moderation" &&
+    (roleStore.isAdmin || roleStore.isSuperAdmin || isOwner.value),
+);
+
 const canAssignEmployee = computed(
   () => roleStore.isAdmin || roleStore.isSuperAdmin,
+);
+
+const canRecheckAi = computed(
+  () =>
+    (roleStore.isAdmin || roleStore.isSuperAdmin) &&
+    appeal.value?.status === "moderation",
 );
 
 const employeeStatusText = computed(() => {
   switch (appeal.value?.status) {
     case "new":
       return "Новое обращение";
-    case "moderation":
-      return "На проверке";
     case "needs_revision":
       return "Требуется повторная работа";
     default:
@@ -182,18 +225,16 @@ const employeeStatusText = computed(() => {
 const employeeStatusType = computed(() => {
   switch (appeal.value?.status) {
     case "new":
-      return "pending";
+      return "new";
     case "needs_revision":
-      return "rejected";
+      return "needs_revision";
     default:
-      return "pending";
+      return "new";
   }
 });
 
 const showEmployeeAccept = computed(
-  () =>
-    isAssignedEmployee.value &&
-    ["new", "moderation"].includes(appeal.value?.status),
+  () => isAssignedEmployee.value && appeal.value?.status === "new",
 );
 
 const showEmployeeWorkForm = computed(
@@ -211,7 +252,8 @@ const showAdminReviewForm = computed(
 const showRatingForm = computed(
   () =>
     isOwner.value &&
-    (appeal.value?.status === "completed" || appeal.value?.status === "rated") &&
+    (appeal.value?.status === "completed" ||
+      appeal.value?.status === "rated") &&
     !appeal.value?.rating?.score,
 );
 
@@ -232,16 +274,29 @@ const normalizeAppeal = (item) => ({
   aiResult: item.aiResult || null,
   employeeName: item.employeeName || "",
   rating: item.rating || null,
+  closedAt: item.closedAt || null,
+  roadmap: item.roadmap || [],
   deadlineAt: item.deadlineAt,
   createdAt: item.createdAt,
   updatedAt: item.updatedAt,
 });
+
+const aiMessages = [
+  "ИИ повторно анализирует фото и описание...",
+  "Проверяем, не изменилось ли содержание обращения...",
+  "Сверяем категорию, приоритет и дедлайн заново...",
+  "Готовим новый AI-ответ для модерации...",
+];
 
 const uploadImages = async (items = []) => {
   return await Promise.all(
     (Array.isArray(items) ? items : []).map(async (item) => {
       const formData = new FormData();
       formData.append("file", item.file);
+      formData.append(
+        "folder",
+        `cityhelp/appeals/${route.params.id}/fixed-images`,
+      );
 
       const response = await api.client({
         url: "/blob/upload",
@@ -259,6 +314,20 @@ const uploadImages = async (items = []) => {
         size: item.file?.size || 0,
       };
     }),
+  );
+};
+
+const deleteUploadedFiles = async (items = []) => {
+  await Promise.allSettled(
+    (Array.isArray(items) ? items : [])
+      .filter((item) => item?.url)
+      .map((item) =>
+        api.client({
+          url: "/blob/delete",
+          method: "delete",
+          params: { url: item.url },
+        }),
+      ),
   );
 };
 
@@ -308,26 +377,37 @@ if (canAssignEmployee.value) {
     params: { role: "employee" },
   });
 
-  employeeOptions.value = (initialEmployees?.data || initialEmployees || []).map(
-    (item) => ({
-      id: item.id,
-      name:
-        `${item.firstName || ""} ${item.lastName || ""}`.trim() ||
-        item.name ||
-        item.email,
-      email: item.email,
-      phone: item.phone,
-      role: item.role,
-    }),
-  );
+  employeeOptions.value = (
+    initialEmployees?.data ||
+    initialEmployees ||
+    []
+  ).map((item) => ({
+    id: item.id,
+    name:
+      `${item.firstName || ""} ${item.lastName || ""}`.trim() ||
+      item.name ||
+      item.email,
+    email: item.email,
+    phone: item.phone,
+    role: item.role,
+  }));
 }
 
 const openDeleteModal = () => {
+  closeActionsModal();
   isOpenDeleteModal.value = true;
 };
 
 const closeDeleteModal = () => {
   isOpenDeleteModal.value = false;
+};
+
+const openActionsModal = () => {
+  isOpenActionsModal.value = true;
+};
+
+const closeActionsModal = () => {
+  isOpenActionsModal.value = false;
 };
 
 const onCancel = () => {
@@ -358,11 +438,52 @@ const onDelete = () => {
 };
 
 const openAssignModal = () => {
+  closeActionsModal();
   isOpenAssignModal.value = true;
 };
 
 const closeAssignModal = () => {
   isOpenAssignModal.value = false;
+};
+
+const openAiRecheckModal = async () => {
+  if (isAiRecheckSubmitting.value) return;
+
+  closeActionsModal();
+  isOpenAiRecheckModal.value = true;
+  isAiRecheckSubmitting.value = true;
+
+  try {
+    await api.client({
+      url: `/appeals/${route.params.id}/recheck-ai`,
+      method: "post",
+    });
+
+    useNotify({
+      title: "AI перепроверил",
+      text: "Результат обновлён",
+      status: "success",
+    });
+
+    await loadAppeal();
+  } catch (error) {
+    useNotify({
+      title: "Ошибка",
+      text:
+        error?.statusMessage ||
+        error?.data?.statusMessage ||
+        "Не удалось перепроверить обращение",
+      status: "error",
+    });
+  } finally {
+    isAiRecheckSubmitting.value = false;
+    isOpenAiRecheckModal.value = false;
+  }
+};
+
+const closeAiRecheckModal = () => {
+  if (isAiRecheckSubmitting.value) return;
+  isOpenAiRecheckModal.value = false;
 };
 
 const assignEmployee = async () => {
@@ -438,9 +559,10 @@ const submitWork = async ({ employeeNote, files }) => {
   if (isWorkSubmitting.value) return;
 
   isWorkSubmitting.value = true;
+  let uploaded = [];
 
   try {
-    const uploaded = await uploadImages(files);
+    uploaded = await uploadImages(files);
 
     await api.client({
       url: `/appeals/${route.params.id}/work-submit`,
@@ -459,6 +581,10 @@ const submitWork = async ({ employeeNote, files }) => {
 
     await loadAppeal();
   } catch (error) {
+    if (uploaded.length) {
+      await deleteUploadedFiles(uploaded);
+    }
+
     useNotify({
       title: "Ошибка",
       text:
@@ -565,6 +691,11 @@ onMounted(async () => {
     align-items: flex-start;
     gap: $gap-md;
   }
+  &__top-inner {
+    display: flex;
+    gap: $gap-md;
+    align-items: center;
+  }
   &__content {
     flex-grow: 1;
     max-width: 70%;
@@ -607,7 +738,7 @@ onMounted(async () => {
     width: 100%;
     padding: $padding-md;
     border-radius: $border-r-md;
-    box-shadow: $box-shadow;
+    // box-shadow: $box-shadow;
     display: flex;
     flex-direction: column;
     gap: $gap-xl;
