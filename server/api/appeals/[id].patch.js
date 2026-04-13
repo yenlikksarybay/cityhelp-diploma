@@ -77,12 +77,19 @@ export default defineEventHandler(async (event) => {
 			.slice(0, 5);
 	};
 
+	const normalizeDeadlineAt = (value) => {
+		if (!value) return null;
+		const date = new Date(String(value).replace(" ", "T"));
+		return Number.isNaN(date.getTime()) ? null : date;
+	};
+
 	const nextDescription = typeof body?.description === "string" ? body.description.trim() : appeal.description;
 	const nextLocation = normalizeLocation(body?.location) || appeal.location;
 	const nextPhotos = normalizeImages(body?.photos?.length ? body.photos : appeal.photos);
 	const nextCategory = typeof body?.category === "string" ? body.category.trim() || appeal.category : appeal.category;
+	const nextEmployeeId = typeof body?.employeeId === "string" ? body.employeeId.trim() : "";
 	const nextPriority = typeof body?.priority === "string" ? body.priority.trim() || appeal.priority : appeal.priority;
-	const nextDeadlineAt = body?.deadlineAt ? new Date(body.deadlineAt) : appeal.deadlineAt;
+	const nextDeadlineAt = normalizeDeadlineAt(body?.deadlineAt) || appeal.deadlineAt;
 	const nextModerationNote = typeof body?.moderationNote === "string" ? body.moderationNote.trim() : appeal.moderationNote;
 	const nextStatus = appeal.status;
 	const changes = [];
@@ -105,6 +112,18 @@ export default defineEventHandler(async (event) => {
 	if (isAdmin && nextCategory !== appeal.category) {
 		appeal.category = nextCategory;
 		changes.push("category");
+	}
+
+	if (isAdmin && nextEmployeeId) {
+		const employee = await UserModel.findById(nextEmployeeId);
+		if (!employee || employee.role !== "employee") {
+			throw createError({ statusCode: 400, statusMessage: "Сотрудник не найден" });
+		}
+
+		if (String(appeal.assignedEmployee || "") !== String(employee._id)) {
+			appeal.assignedEmployee = employee._id;
+			changes.push("assignedEmployee");
+		}
 	}
 
 	if (isAdmin && nextPriority !== appeal.priority) {

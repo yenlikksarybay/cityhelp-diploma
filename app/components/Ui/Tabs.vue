@@ -26,7 +26,15 @@
           size="size-24"
           :color="tab?.id === modelValue?.id ? 'white' : ''"
         />
-        {{ tab.name }}
+        <span class="tabs__label">
+          {{ tab.name }}
+        </span>
+        <span
+          v-if="tab.count !== undefined && tab.count !== null"
+          class="tabs__count"
+        >
+          {{ tab.count }}
+        </span>
       </button>
     </div>
   </div>
@@ -77,6 +85,27 @@ const props = defineProps({
     align-items: center;
     justify-content: center;
     gap: $gap-md;
+
+    & :deep(.tabs__label) {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    & :deep(.tabs__count) {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba($white, 0.18);
+      color: $white;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+    }
+
     &--line {
       padding: $padding-md;
       width: fit-content;
@@ -90,6 +119,10 @@ const props = defineProps({
     &--active {
       color: $white;
       background-color: $secondary-accent;
+
+      & :deep(.tabs__count) {
+        background: rgba($white, 0.22);
+      }
     }
   }
 }

@@ -34,7 +34,7 @@ const props = defineProps({
 
 const formatDate = (value) => {
   if (!value) return "—";
-  return formatDateToDots(value) || "—";
+  return formatDateTimeToDots(value) || formatDateToDots(value) || "—";
 };
 
 const statusText = (status) => {

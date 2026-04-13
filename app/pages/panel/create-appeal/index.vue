@@ -36,6 +36,19 @@
       />
     </div>
   </section>
+
+  <UiModal
+    :is-open="isAiProcessingOpen"
+    title="AI анализирует обращение"
+    max-width="720px"
+    @close="closeAiProcessing"
+  >
+    <ModalsAiProcessing
+      :attempts="0"
+      title="AI анализирует фото и описание"
+      :messages="aiMessages"
+    />
+  </UiModal>
 </template>
 
 <script setup>
@@ -48,6 +61,15 @@ const comment = ref("");
 const map = ref(null);
 const isSubmitting = ref(false);
 const appealId = ref("");
+const isAiProcessingOpen = ref(false);
+
+const aiMessages = [
+  "ИИ изучает фотографии обращения...",
+  "Сопоставляем описание с тем, что видно на фото...",
+  "Подбираем категорию, приоритет и дедлайн...",
+  "Определяем сотрудника с наименьшей нагрузкой...",
+  "Готовим обращение к модерации...",
+];
 
 const error = ref({
   stepOne: false,
@@ -158,6 +180,7 @@ const postAppeal = async () => {
   }
 
   isSubmitting.value = true;
+  isAiProcessingOpen.value = true;
   let uploaded = [];
 
   try {
@@ -201,7 +224,13 @@ const postAppeal = async () => {
     });
   } finally {
     isSubmitting.value = false;
+    isAiProcessingOpen.value = false;
   }
+};
+
+const closeAiProcessing = () => {
+  if (isSubmitting.value) return;
+  isAiProcessingOpen.value = false;
 };
 
 watch(

@@ -53,7 +53,7 @@ const statusText = (status) => {
 
 const formatDate = (value) => {
   if (!value) return "—";
-  return formatDateToDots(value) || "—";
+  return formatDateTimeToDots(value) || formatDateToDots(value) || "—";
 };
 </script>
 

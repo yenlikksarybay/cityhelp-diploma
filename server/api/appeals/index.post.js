@@ -67,11 +67,12 @@ const normalizePhotos = (photos = []) => {
 		.slice(0, 5);
 };
 
-const parseDeadlineDate = (deadlineDate) => {
-	const value = String(deadlineDate || "").trim();
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+const parseDeadlineAt = (deadlineAt) => {
+	const value = String(deadlineAt || "").trim();
+	if (!value) return null;
 
-	const date = new Date(`${value}T23:59:59.999Z`);
+	const normalized = value.includes("T") ? value : value.replace(" ", "T");
+	const date = new Date(normalized);
 	return Number.isNaN(date.getTime()) ? null : date;
 };
 
@@ -139,7 +140,7 @@ export default defineEventHandler(async (event) => {
 		subCategory: aiResult.subCategory || "",
 		priority: aiResult.priority || "medium",
 		status: "moderation",
-		deadlineAt: parseDeadlineDate(aiResult.deadlineDate),
+		deadlineAt: parseDeadlineAt(aiResult.deadlineAt || aiResult.deadlineDate),
 		assignedEmployee: aiResult.assignedEmployee?.id || null,
 		aiResult: normalizedAiResult,
 		timeline: [
@@ -154,7 +155,7 @@ export default defineEventHandler(async (event) => {
 					category: normalizedAiResult.category || "unclassified",
 					subCategory: normalizedAiResult.subCategory || "",
 					priority: normalizedAiResult.priority || "medium",
-					deadlineDate: normalizedAiResult.deadlineDate || null,
+					deadlineAt: normalizedAiResult.deadlineAt || normalizedAiResult.deadlineDate || null,
 					assignedEmployee: normalizedAiResult.assignedEmployee || null,
 					categoryReason: normalizedAiResult.decision.categoryReason,
 					subCategoryReason: normalizedAiResult.decision.subCategoryReason,
@@ -182,8 +183,7 @@ export default defineEventHandler(async (event) => {
 			subCategory: appeal.subCategory,
 			priority: appeal.priority,
 			status: appeal.status,
-			deadlineAt: appeal.deadlineAt,
-			deadlineDate: appeal.deadlineAt ? appeal.deadlineAt.toISOString().slice(0, 10) : null,
+			deadlineAt: appeal.deadlineAt ? appeal.deadlineAt.toISOString().slice(0, 16).replace("T", " ") : null,
 			assignedEmployee: appeal.assignedEmployee ? String(appeal.assignedEmployee) : null,
 			aiResult: appeal.aiResult,
 			timeline: appeal.timeline,

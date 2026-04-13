@@ -47,17 +47,10 @@ const emit = defineEmits(["cancel", "delete"]);
     &--cancel {
       border: none;
       color: $surface-400;
-      &:hover {
-        color: white;
-      }
     }
     &--delete {
       border: 1px solid $red-300;
       color: $red-300;
-      &:hover {
-        background-color: $red-300;
-        color: $white;
-      }
     }
   }
 }

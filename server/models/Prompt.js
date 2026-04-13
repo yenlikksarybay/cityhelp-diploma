@@ -51,14 +51,19 @@ const promptSchema = new mongoose.Schema(
 			type: String,
 			default: "",
 		},
-		exampleOutput: {
-			type: String,
-			default: "",
-		},
-		isActive: {
-			type: Boolean,
-			default: true,
-		},
+			exampleOutput: {
+				type: String,
+				default: "",
+			},
+			version: {
+				type: Number,
+				default: 1,
+				index: true,
+			},
+			isActive: {
+				type: Boolean,
+				default: true,
+			},
 	},
 	{
 		timestamps: true,

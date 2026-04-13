@@ -52,10 +52,33 @@ export default defineEventHandler(async (event) => {
 		photos: appeal.photos,
 	});
 
-	appeal.aiResult = {
+	const normalizedAiResult = {
 		...aiResult,
 		status: "moderation",
+		decision: {
+			categoryReason: String(aiResult.categoryReason || "").trim(),
+			priorityReason: String(aiResult.priorityReason || "").trim(),
+			deadlineReason: String(aiResult.deadlineReason || "").trim(),
+			locationReason: String(aiResult.locationReason || "").trim(),
+			statusReason: String(aiResult.statusReason || "").trim(),
+			assignedEmployeeReason: String(aiResult.assignedEmployeeReason || "").trim(),
+			analysisSummary: String(aiResult.analysisSummary || "").trim(),
+			evidence: Array.isArray(aiResult.evidence) ? aiResult.evidence : [],
+			uncertainties: Array.isArray(aiResult.uncertainties) ? aiResult.uncertainties : [],
+			assumptions: Array.isArray(aiResult.assumptions) ? aiResult.assumptions : [],
+			subCategoryReason: String(aiResult.subCategoryReason || "").trim(),
+		},
 	};
+
+	const previousEmployeeId = appeal.assignedEmployee ? String(appeal.assignedEmployee) : "";
+	const nextEmployeeId = aiResult.assignedEmployee?.id ? String(aiResult.assignedEmployee.id) : "";
+
+	appeal.category = aiResult.category || appeal.category;
+	appeal.subCategory = aiResult.subCategory || appeal.subCategory || "";
+	appeal.priority = aiResult.priority || appeal.priority;
+	appeal.deadlineAt = aiResult.deadlineAt ? new Date(aiResult.deadlineAt.replace(" ", "T")) : appeal.deadlineAt;
+	appeal.assignedEmployee = nextEmployeeId || appeal.assignedEmployee || null;
+	appeal.aiResult = normalizedAiResult;
 	appeal.timeline = [
 		...(appeal.timeline || []),
 		createAppealTimelineEntry({
@@ -63,14 +86,26 @@ export default defineEventHandler(async (event) => {
 			role: "ai",
 			authorName: "AI CityHelp",
 			title: "AI перепроверил обращение",
-			text: aiResult.shortSummary || "Обращение повторно проанализировано",
+			text: normalizedAiResult.shortSummary || "Обращение повторно проанализировано",
 			statusFrom: "moderation",
 			statusTo: "moderation",
 			meta: {
-				category: aiResult.category || "",
-				priority: aiResult.priority || "",
-				deadlineDate: aiResult.deadlineDate || null,
-				assignedEmployee: aiResult.assignedEmployee || null,
+				category: normalizedAiResult.category || "",
+				priority: normalizedAiResult.priority || "",
+				deadlineAt: normalizedAiResult.deadlineAt || normalizedAiResult.deadlineDate || null,
+				assignedEmployee: normalizedAiResult.assignedEmployee || null,
+				previousAssignedEmployee: previousEmployeeId || null,
+				nextAssignedEmployee: nextEmployeeId || null,
+				categoryReason: normalizedAiResult.decision.categoryReason,
+				subCategoryReason: normalizedAiResult.decision.subCategoryReason,
+				priorityReason: normalizedAiResult.decision.priorityReason,
+				deadlineReason: normalizedAiResult.decision.deadlineReason,
+				statusReason: normalizedAiResult.decision.statusReason,
+				assignedEmployeeReason: normalizedAiResult.decision.assignedEmployeeReason,
+				analysisSummary: normalizedAiResult.decision.analysisSummary,
+				evidence: normalizedAiResult.decision.evidence,
+				uncertainties: normalizedAiResult.decision.uncertainties,
+				assumptions: normalizedAiResult.decision.assumptions,
 			},
 		}),
 	];

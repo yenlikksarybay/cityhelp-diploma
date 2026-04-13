@@ -1,7 +1,7 @@
 <template>
   <section v-if="show" class="review">
     <div class="review__wrapper">
-      <h4 class="review__title title-md title-point">Проверка сотрудника</h4>
+      <h4 class="review__title title-md title-point">Проверка модерации</h4>
 
       <div class="review__field">
         <p class="review__label">Комментарий проверки</p>
@@ -17,7 +17,7 @@
         />
         <UiButton
           class="review__btn primary-btn"
-          :label="isSubmitting ? '...' : 'Подтвердить выполнение'"
+          :label="isSubmitting ? '...' : 'Подтвердить модерацию'"
           :disabled="isSubmitting"
           @action="submit(true)"
         />

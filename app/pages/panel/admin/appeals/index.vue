@@ -29,6 +29,8 @@
 </template>
 
 <script setup>
+import { buildAppealTabs } from "~/utils/appealTabs";
+
 const api = useApi();
 const route = useRoute();
 useSeo({ title: "Список обращений" });
@@ -64,7 +66,7 @@ const priorities = [
 ];
 const onePriority = ref(priorities[0]);
 
-const tabs = [
+const baseTabs = [
   {
     id: 1,
     value: "all",
@@ -108,7 +110,8 @@ const tabs = [
     icon: "close",
   },
 ];
-const oneTab = ref(tabs[0]);
+const tabs = ref(buildAppealTabs(baseTabs));
+const oneTab = ref(tabs.value[0]);
 const appeals = ref([]);
 
 const normalizeAppeal = (appeal) => ({
@@ -158,6 +161,7 @@ const initialResponse = await useFetchSsr({
 });
 
 appeals.value = (initialResponse?.data || initialResponse || []).map(normalizeAppeal);
+tabs.value = buildAppealTabs(baseTabs, initialResponse?.meta || initialResponse?.data?.meta || {});
 pagination.value = {
   totalPages: Number(initialResponse?.meta?.totalPages || initialResponse?.data?.meta?.totalPages || 1),
   total: Number(initialResponse?.meta?.total || initialResponse?.data?.meta?.total || 0),

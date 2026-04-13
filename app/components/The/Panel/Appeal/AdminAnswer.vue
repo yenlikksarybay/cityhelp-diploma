@@ -8,7 +8,9 @@
           <p class="answer__role">
             {{ authorLabel }} - <span class="answer__baige">{{ authorName }}</span>
           </p>
-          <p class="answer__date">{{ formatDate(props.appeal?.updatedAt || props.appeal?.createdAt) }}</p>
+          <p class="answer__date">
+            {{ formatDateTime(props.appeal?.updatedAt || props.appeal?.createdAt) }}
+          </p>
         </div>
         <p class="answer__comment">{{ text }}</p>
         <div v-if="props.appeal?.aiResult?.photoObservation" class="answer__vision">
@@ -18,6 +20,18 @@
         <div v-if="props.appeal?.aiResult?.analysisSummary" class="answer__vision">
           <p class="answer__vision-title">Как AI объяснил решение</p>
           <p class="answer__vision-text">{{ props.appeal.aiResult.analysisSummary }}</p>
+        </div>
+        <div v-if="props.appeal?.aiResult?.photoDetails?.length" class="answer__vision">
+          <p class="answer__vision-title">Подробности на фото</p>
+          <ul class="answer__list">
+            <li
+              v-for="(item, index) in props.appeal.aiResult.photoDetails"
+              :key="`photo-detail-${index}`"
+              class="answer__list-item"
+            >
+              {{ item }}
+            </li>
+          </ul>
         </div>
         <div
           v-if="props.appeal?.aiResult?.evidence?.length"
@@ -81,7 +95,7 @@
                   {{ item.authorName || roleLabel(item.role) }}
                 </p>
               </div>
-              <p class="answer__step-date">{{ formatDate(item.createdAt) }}</p>
+              <p class="answer__step-date">{{ formatDateTime(item.createdAt) }}</p>
             </div>
             <p v-if="item.text" class="answer__step-text">{{ item.text }}</p>
             <div v-if="item.statusFrom || item.statusTo" class="answer__step-status">
@@ -201,7 +215,8 @@ const formatMeta = (meta = {}) => {
   const entries = [];
   if (meta.category) entries.push({ key: "category", label: "Категория", value: meta.category });
   if (meta.priority) entries.push({ key: "priority", label: "Приоритет", value: meta.priority });
-  if (meta.deadlineDate) entries.push({ key: "deadlineDate", label: "Дедлайн", value: meta.deadlineDate });
+  if (meta.deadlineAt) entries.push({ key: "deadlineAt", label: "Дедлайн", value: formatDateTimeToDots(meta.deadlineAt) || meta.deadlineAt });
+  else if (meta.deadlineDate) entries.push({ key: "deadlineDate", label: "Дедлайн", value: meta.deadlineDate });
   if (meta.assignedEmployee?.name) {
     entries.push({
       key: "assignedEmployee",
@@ -229,9 +244,9 @@ const formatMeta = (meta = {}) => {
   return entries;
 };
 
-const formatDate = (value) => {
+const formatDateTime = (value) => {
   if (!value) return "—";
-  return formatDateToDots(value) || "—";
+  return formatDateTimeToDots(value) || formatDateToDots(value) || "—";
 };
 </script>
 

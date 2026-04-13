@@ -32,6 +32,7 @@ import ThePanelAdminDetailDetailHeader from "~/components/The/Panel/Admin/Detail
 import ThePanelAdminDetailDetailStats from "~/components/The/Panel/Admin/Detail/DetailStats.vue";
 import ThePanelAdminDetailDetailInfoGrid from "~/components/The/Panel/Admin/Detail/DetailInfoGrid.vue";
 import ThePanelAdminDetailDetailAppealsSection from "~/components/The/Panel/Admin/Detail/DetailAppealsSection.vue";
+import { buildAppealTabs } from "~/utils/appealTabs";
 
 const api = useApi();
 const route = useRoute();
@@ -59,7 +60,7 @@ const stats = ref({
   closedAppeals: 0,
 });
 
-const tabs = [
+const baseTabs = [
   { id: 1, value: "all", name: "Все", icon: "" },
   { id: 2, value: "new", name: "Новые", icon: "time-i" },
   { id: 3, value: "moderation", name: "Модерация", icon: "time-i" },
@@ -69,6 +70,7 @@ const tabs = [
   { id: 7, value: "rated", name: "Оценённые", icon: "checkmark-i" },
   { id: 8, value: "rejected", name: "Отклонённые", icon: "close" },
 ];
+const tabs = ref(buildAppealTabs(baseTabs));
 
 const employeeName = computed(() => {
   return (
@@ -161,6 +163,7 @@ const initialResponse = await useFetchSsr({
 employee.value = initialResponse?.data?.employee || initialResponse?.employee || {};
 stats.value = initialResponse?.data?.stats || initialResponse?.stats || stats.value;
 appeals.value = (initialResponse?.data?.appeals || initialResponse?.appeals || []).map(normalizeAppeal);
+tabs.value = buildAppealTabs(baseTabs, initialResponse?.meta || initialResponse?.data?.meta || {});
 pagination.value = {
   totalPages: Number(initialResponse?.data?.meta?.totalPages || initialResponse?.meta?.totalPages || 1),
   total: Number(initialResponse?.data?.meta?.total || initialResponse?.meta?.total || 0),

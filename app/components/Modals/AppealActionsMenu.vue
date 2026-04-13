@@ -4,14 +4,13 @@
 
     <div class="menu__list">
       <UiButton
-        v-if="showEdit"
-        tag="a"
-        :href="`/panel/edit-appeal/${appealId}`"
+        v-if="showEditData"
         before-icon="pen-i"
         icon-size="size-24"
         class="menu__btn secondary-btn"
-        label="Редактировать"
+        label="Изменить данные"
         icon-color="secondary-accent"
+        @action="emit('edit-data')"
       />
       <UiButton
         v-if="showRecheck"
@@ -21,14 +20,6 @@
         class="menu__btn secondary-btn"
         label="Перепроверить AI"
         @action="emit('recheck')"
-      />
-      <UiButton
-        v-if="showAssign"
-        class="menu__btn secondary-btn"
-        label="Назначить сотрудника"
-        @action="emit('assign')"
-        before-icon="user-i"
-        icon-color="secondary-accent"
       />
       <UiButton
         v-if="showDelete"
@@ -49,15 +40,11 @@ defineProps({
     type: [String, Number],
     required: true,
   },
-  showEdit: {
+  showEditData: {
     type: Boolean,
     default: false,
   },
   showRecheck: {
-    type: Boolean,
-    default: false,
-  },
-  showAssign: {
     type: Boolean,
     default: false,
   },
@@ -67,7 +54,7 @@ defineProps({
   },
 });
 
-const emit = defineEmits(["recheck", "assign", "delete"]);
+const emit = defineEmits(["recheck", "edit-data", "delete"]);
 </script>
 
 <style lang="scss" scoped>

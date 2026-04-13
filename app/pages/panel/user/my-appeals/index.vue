@@ -18,11 +18,13 @@
 </template>
 
 <script setup>
+import { buildAppealTabs } from "~/utils/appealTabs";
+
 const api = useApi();
 const route = useRoute();
 useSeo({ title: "Мои обращения" });
 
-const tabs = [
+const baseTabs = [
   {
     id: 1,
     value: "all",
@@ -72,7 +74,8 @@ const tabs = [
     icon: "close",
   },
 ];
-const oneTab = ref(tabs[0]);
+const tabs = ref(buildAppealTabs(baseTabs));
+const oneTab = ref(tabs.value[0]);
 const cards = ref([]);
 const page = ref(Number(route.query.page || 1));
 const pagination = ref({
@@ -122,6 +125,7 @@ const initialResponse = await useFetchSsr({
 });
 
 cards.value = (initialResponse?.data || initialResponse || []).map(normalizeAppeal);
+tabs.value = buildAppealTabs(baseTabs, initialResponse?.meta || initialResponse?.data?.meta || {});
 pagination.value = {
   totalPages: Number(initialResponse?.meta?.totalPages || initialResponse?.data?.meta?.totalPages || 1),
   total: Number(initialResponse?.meta?.total || initialResponse?.data?.meta?.total || 0),

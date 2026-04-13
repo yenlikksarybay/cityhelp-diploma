@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
 			type: "admin_moderation",
 			role: user.role,
 			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Администратор",
-			title: isOk ? "Обращение одобрено" : "Обращение отклонено",
+			title: isOk ? "Модерация подтверждена" : "Обращение отклонено",
 			text: note || (isOk ? "AI-результат подтверждён" : "Обращение не прошло проверку"),
 			statusFrom: "moderation",
 			statusTo: nextStatus,

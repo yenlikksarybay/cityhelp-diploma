@@ -58,12 +58,12 @@
         >
           <div class="appeal__aside-inner">
             <ThePanelAppealAsideInfo :appeal="appeal" />
-            <UiButton
-              v-if="canAssignEmployee"
-              class="appeal__aside-btn secondary-btn"
-              label="Назначить сотрудника"
-              @action="openAssignModal"
-            />
+          <UiButton
+            v-if="canEditData"
+            class="appeal__aside-btn secondary-btn"
+            label="Изменить данные"
+            @action="openEditDataModal"
+          />
             <ThePanelAppealRoadmap :roadmap="appeal?.roadmap || []" />
           </div>
         </div>
@@ -84,16 +84,17 @@
 
   <UiModal
     :is-open="isOpenAssignModal"
-    title="Назначить сотрудника"
+    title="Изменить данные обращения"
     max-width="600px"
     @close="closeAssignModal"
   >
-    <ModalsAssignEmployee
-      v-model="selectedEmployee"
+    <ModalsEditAppealData
+      :appeal="appeal"
       :employees="employeeOptions"
-      :is-submitting="isAssignSubmitting"
+      :categories="categoryOptions"
+      :is-submitting="isEditDataSubmitting"
       @close="closeAssignModal"
-      @save="assignEmployee"
+      @save="saveEditData"
     />
   </UiModal>
 
@@ -118,12 +119,11 @@
   >
     <ModalsAppealActionsMenu
       :appeal-id="route.params.id"
-      :show-edit="canEditAppeal"
+      :show-edit-data="canEditData"
       :show-recheck="canRecheckAi"
-      :show-assign="canAssignEmployee"
       :show-delete="canDelete"
       @recheck="openAiRecheckModal"
-      @assign="openAssignModal"
+      @edit-data="openEditDataModal"
       @delete="openDeleteModal"
     />
   </UiModal>
@@ -139,14 +139,14 @@ const roleStore = useRoleStore();
 
 const appeal = ref(null);
 const employeeOptions = ref([]);
-const selectedEmployee = ref(null);
+const categoryOptions = ref([]);
 
 const isOpenDeleteModal = ref(false);
 const isOpenAssignModal = ref(false);
 const isOpenAiRecheckModal = ref(false);
 const isOpenActionsModal = ref(false);
 const isEmployeeSubmitting = ref(false);
-const isAssignSubmitting = ref(false);
+const isEditDataSubmitting = ref(false);
 const isWorkSubmitting = ref(false);
 const isReviewSubmitting = ref(false);
 const isRatingSubmitting = ref(false);
@@ -195,14 +195,10 @@ const canDelete = computed(
     (isOwner.value && currentAppealOwnerId.value),
 );
 
-const canEditAppeal = computed(
+const canEditData = computed(
   () =>
     appeal.value?.status === "moderation" &&
-    (roleStore.isAdmin || roleStore.isSuperAdmin || isOwner.value),
-);
-
-const canAssignEmployee = computed(
-  () => roleStore.isAdmin || roleStore.isSuperAdmin,
+    (roleStore.isAdmin || roleStore.isSuperAdmin),
 );
 
 const canRecheckAi = computed(
@@ -341,8 +337,6 @@ const loadAppeal = async () => {
 };
 
 const loadEmployees = async () => {
-  if (!canAssignEmployee.value) return;
-
   const response = await api.client({
     url: "/admin/users",
     method: "get",
@@ -361,6 +355,25 @@ const loadEmployees = async () => {
   }));
 };
 
+const normalizeCategory = (item) => ({
+  id: item.id,
+  key: item.key || "",
+  name: item.name || "",
+  description: item.description || "",
+  subcategories: Array.isArray(item.subcategories) ? item.subcategories : [],
+  order: item.order || 0,
+  isActive: Boolean(item.isActive),
+});
+
+const loadCategories = async () => {
+  const response = await api.client({
+    url: "/admin/categories",
+    method: "get",
+  });
+
+  categoryOptions.value = (response?.data || response || []).map(normalizeCategory);
+};
+
 const initialAppeal = await useFetchSsr({
   url: `/appeals/${route.params.id}`,
   method: "get",
@@ -370,12 +383,18 @@ appeal.value = normalizeAppeal(initialAppeal?.data || initialAppeal || {});
 
 useSeo({ title: `Обращение №${route.params.id}` });
 
-if (canAssignEmployee.value) {
-  const initialEmployees = await useFetchSsr({
-    url: "/admin/users",
-    method: "get",
-    params: { role: "employee" },
-  });
+if (roleStore.isAdmin || roleStore.isSuperAdmin) {
+  const [initialEmployees, initialCategories] = await Promise.all([
+    useFetchSsr({
+      url: "/admin/users",
+      method: "get",
+      params: { role: "employee" },
+    }),
+    useFetchSsr({
+      url: "/admin/categories",
+      method: "get",
+    }),
+  ]);
 
   employeeOptions.value = (
     initialEmployees?.data ||
@@ -391,6 +410,12 @@ if (canAssignEmployee.value) {
     phone: item.phone,
     role: item.role,
   }));
+
+  categoryOptions.value = (
+    initialCategories?.data ||
+    initialCategories ||
+    []
+  ).map(normalizeCategory);
 }
 
 const openDeleteModal = () => {
@@ -437,8 +462,14 @@ const onDelete = () => {
     });
 };
 
-const openAssignModal = () => {
+const openEditDataModal = async () => {
   closeActionsModal();
+  if (!employeeOptions.value.length) {
+    await loadEmployees();
+  }
+  if (!categoryOptions.value.length) {
+    await loadCategories();
+  }
   isOpenAssignModal.value = true;
 };
 
@@ -486,27 +517,30 @@ const closeAiRecheckModal = () => {
   isOpenAiRecheckModal.value = false;
 };
 
-const assignEmployee = async () => {
-  if (!selectedEmployee.value?.id || isAssignSubmitting.value) return;
+const saveEditData = async ({ employeeId, category, subCategory, priority, deadlineAt }) => {
+  if (isEditDataSubmitting.value) return;
 
-  isAssignSubmitting.value = true;
+  isEditDataSubmitting.value = true;
 
   try {
     await api.client({
-      url: `/appeals/${route.params.id}/assign`,
-      method: "post",
+      url: `/appeals/${route.params.id}`,
+      method: "patch",
       body: {
-        employeeId: selectedEmployee.value.id,
+        employeeId,
+        category,
+        subCategory,
+        priority,
+        deadlineAt,
       },
     });
 
     useNotify({
       title: "Сохранено",
-      text: "Сотрудник назначен",
+      text: "Данные обращения обновлены",
       status: "success",
     });
 
-    selectedEmployee.value = null;
     closeAssignModal();
     await loadAppeal();
   } catch (error) {
@@ -515,11 +549,11 @@ const assignEmployee = async () => {
       text:
         error?.statusMessage ||
         error?.data?.statusMessage ||
-        "Не удалось назначить сотрудника",
+        "Не удалось сохранить данные",
       status: "error",
     });
   } finally {
-    isAssignSubmitting.value = false;
+    isEditDataSubmitting.value = false;
   }
 };
 
@@ -672,8 +706,13 @@ const submitRating = async ({ score, comment }) => {
 
 onMounted(async () => {
   await loadAppeal();
-  if (canAssignEmployee.value && !employeeOptions.value.length) {
-    await loadEmployees();
+  if (roleStore.isAdmin || roleStore.isSuperAdmin) {
+    if (!employeeOptions.value.length) {
+      await loadEmployees();
+    }
+    if (!categoryOptions.value.length) {
+      await loadCategories();
+    }
   }
 });
 </script>
