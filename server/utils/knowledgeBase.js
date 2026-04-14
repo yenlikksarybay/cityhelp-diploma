@@ -3,10 +3,11 @@ import { FaqModel } from "../models/Faq.js";
 import { CategoryModel } from "../models/Category.js";
 
 export const ensureDefaultFaqs = async () => {
-	const total = await FaqModel.countDocuments({});
-	if (total === 0) {
-		await FaqModel.insertMany(DEFAULT_FAQ_ITEMS);
-	}
+	await Promise.all(
+		DEFAULT_FAQ_ITEMS.map((item) =>
+			FaqModel.updateOne({ key: item.key }, { $setOnInsert: item }, { upsert: true }),
+		),
+	);
 	return FaqModel.find({}).sort({ order: 1, createdAt: 1 }).lean();
 };
 

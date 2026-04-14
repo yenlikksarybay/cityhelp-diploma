@@ -7,7 +7,7 @@
           Для безопасности подтвердите текущий пароль и задайте новый.
         </p>
       </div>
-      <UiIcon icon="document-pen-i" size="size-24" color="#606C38" />
+      <UiIcon icon="key-i" size="size-24" color="#606C38" />
     </div>
 
     <div class="password-card__form">
@@ -65,12 +65,14 @@ const emit = defineEmits(["update:modelValue", "save"]);
 
 const oldPassword = computed({
   get: () => props.modelValue?.oldPassword || "",
-  set: (value) => emit("update:modelValue", { ...props.modelValue, oldPassword: value }),
+  set: (value) =>
+    emit("update:modelValue", { ...props.modelValue, oldPassword: value }),
 });
 
 const newPassword = computed({
   get: () => props.modelValue?.newPassword || "",
-  set: (value) => emit("update:modelValue", { ...props.modelValue, newPassword: value }),
+  set: (value) =>
+    emit("update:modelValue", { ...props.modelValue, newPassword: value }),
 });
 
 const confirmPassword = computed({

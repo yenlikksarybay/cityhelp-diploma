@@ -260,3 +260,8 @@ i.icon {
 	-webkit-mask-image: url("@/assets/icons/info-circle-i.svg");
 	mask-image: url("@/assets/icons/info-circle-i.svg");
 }
+.key-i{
+	@extend i, .icon;
+	-webkit-mask-image: url("@/assets/icons/key-i.svg");
+	mask-image: url("@/assets/icons/key-i.svg");
+}

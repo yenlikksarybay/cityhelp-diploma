@@ -3,6 +3,57 @@ import { createError } from "h3";
 const DEFAULT_MODEL = "gemini-2.5-flash";
 const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
 
+const normalizeGeminiError = (error, modelName) => {
+	const upstreamStatus =
+		error?.statusCode || error?.response?.status || error?.data?.status || 502;
+	const upstreamMessage = String(
+		error?.statusMessage ||
+			error?.data?.error?.message ||
+			error?.data?.message ||
+			error?.message ||
+			"Ошибка Gemini",
+	).trim();
+
+	const isAccessProblem = [401, 403].includes(Number(upstreamStatus));
+	const isRateLimited = Number(upstreamStatus) === 429;
+
+	if (isAccessProblem) {
+		return createError({
+			statusCode: 502,
+			statusMessage:
+				"Сервис AI временно недоступен. Gemini отклонил запрос: проверьте API-ключ и доступ к модели.",
+			data: {
+				upstreamStatus,
+				upstreamMessage,
+				model: modelName,
+			},
+		});
+	}
+
+	if (isRateLimited) {
+		return createError({
+			statusCode: 503,
+			statusMessage:
+				"Сервис AI временно перегружен: превышен лимит запросов к Gemini. Попробуйте позже.",
+			data: {
+				upstreamStatus,
+				upstreamMessage,
+				model: modelName,
+			},
+		});
+	}
+
+	return createError({
+		statusCode: 502,
+		statusMessage: `Ошибка сервиса AI (Gemini): ${upstreamMessage}`,
+		data: {
+			upstreamStatus,
+			upstreamMessage,
+			model: modelName,
+		},
+	});
+};
+
 const extractJson = (text = "") => {
 	const trimmed = String(text || "").trim();
 
@@ -110,7 +161,7 @@ export const geminiService = {
 				const message = String(error?.statusMessage || error?.data?.message || error?.message || "");
 				const isModelMissing = statusCode === 404 || /not found|not supported|invalid/i.test(message);
 				if (!isModelMissing) {
-					throw error;
+					throw normalizeGeminiError(error, modelName);
 				}
 			}
 		}

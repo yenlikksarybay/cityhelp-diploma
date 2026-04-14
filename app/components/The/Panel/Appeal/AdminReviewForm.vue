@@ -5,7 +5,14 @@
 
       <div class="review__field">
         <p class="review__label">Комментарий проверки</p>
-        <UiTextarea v-model="comment" placeholder="Напишите комментарий проверки" />
+        <UiTextarea
+          v-model="comment"
+          placeholder="Напишите комментарий проверки"
+        />
+      </div>
+
+      <div v-if="!canApprove" class="review__warning">
+        {{ missingEmployeeMessage }}
       </div>
 
       <div class="review__actions">
@@ -18,7 +25,7 @@
         <UiButton
           class="review__btn primary-btn"
           :label="isSubmitting ? '...' : 'Подтвердить модерацию'"
-          :disabled="isSubmitting"
+          :disabled="isSubmitting || !canApprove"
           @action="submit(true)"
         />
       </div>
@@ -29,7 +36,7 @@
 <script setup>
 const emit = defineEmits(["review"]);
 
-defineProps({
+const props = defineProps({
   show: {
     type: Boolean,
     default: false,
@@ -38,11 +45,28 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  canApprove: {
+    type: Boolean,
+    default: true,
+  },
+  missingEmployeeMessage: {
+    type: String,
+    default: "Назначьте сотрудника перед подтверждением модерации.",
+  },
 });
 
 const comment = ref("");
 
 const submit = (isOk) => {
+  if (isOk && !props.canApprove) {
+    useNotify({
+      title: "Нужно назначение",
+      text: props.missingEmployeeMessage,
+      status: "error",
+    });
+    return;
+  }
+
   emit("review", {
     isOk,
     note: comment.value.trim(),
@@ -73,6 +97,13 @@ const submit = (isOk) => {
     justify-content: flex-end;
     gap: $gap-md;
     flex-wrap: wrap;
+  }
+  &__warning {
+    padding: $padding-sm;
+    border-radius: $border-r-sm;
+    background: rgba($orange-500, 0.12);
+    color: $orange-500;
+    font-weight: 700;
   }
   &__btn {
     min-width: 220px;

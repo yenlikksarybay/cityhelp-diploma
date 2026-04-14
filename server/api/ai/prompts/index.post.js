@@ -2,7 +2,7 @@ import { readBody, createError } from "h3";
 import { PromptModel } from "../../../models/Prompt.js";
 import { createSuccessResponse } from "../../../utils/createSuccessResponse.js";
 
-const PROMPT_VERSION = 3;
+const PROMPT_VERSION = 4;
 
 export default defineEventHandler(async (event) => {
 	const body = await readBody(event);

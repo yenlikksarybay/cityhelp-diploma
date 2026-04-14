@@ -10,6 +10,18 @@
         :avatar-initials="employeeInitials"
       />
 
+      <div class="staff-detail__actions">
+        <UiButton
+          class="secondary-btn staff-detail__action-btn"
+          label="Понизить до user"
+          :disabled="isDemoting"
+          @action="demoteEmployee"
+        />
+        <p class="staff-detail__action-hint">
+          Действие доступно только если у сотрудника нет активных обращений.
+        </p>
+      </div>
+
       <ThePanelAdminDetailDetailStats :stats="statsCards" />
 
       <ThePanelAdminDetailDetailInfoGrid :items="infoItems" />
@@ -51,6 +63,7 @@ const pagination = ref({
   totalPages: 1,
   total: 0,
 });
+const isDemoting = ref(false);
 const stats = ref({
   totalAppeals: 0,
   positiveRatingCount: 0,
@@ -150,6 +163,34 @@ const loadEmployee = async () => {
   };
 };
 
+const demoteEmployee = async () => {
+  if (isDemoting.value) return;
+
+  try {
+    isDemoting.value = true;
+    await api.client({
+      url: `/admin/staff/${route.params.id}/demote`,
+      method: "post",
+    });
+
+    useNotify({
+      title: "Роль обновлена",
+      text: "Сотрудник переведён в роль пользователя.",
+      status: "success",
+    });
+
+    await navigateTo(`/panel/admin/users/${route.params.id}`);
+  } catch (error) {
+    useNotify({
+      title: "Не удалось изменить роль",
+      text: error?.statusMessage || "Сначала закройте или переназначьте активные обращения.",
+      status: "error",
+    });
+  } finally {
+    isDemoting.value = false;
+  }
+};
+
 const initialResponse = await useFetchSsr({
   url: `/admin/staff/${route.params.id}`,
   method: "get",
@@ -182,6 +223,40 @@ watch(oneTab, () => {
     display: flex;
     flex-direction: column;
     gap: $gap-xxl;
+  }
+
+  &__actions {
+    padding: $padding-lg;
+    border-radius: $border-r-lg;
+    background: $white;
+    box-shadow: $box-shadow;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $gap-md;
+  }
+
+  &__action-btn {
+    min-width: 220px;
+  }
+
+  &__action-hint {
+    color: $surface-500;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 768px) {
+  .staff-detail {
+    &__actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__action-btn {
+      width: 100%;
+      min-width: 0;
+    }
   }
 }
 </style>

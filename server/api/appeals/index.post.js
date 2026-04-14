@@ -116,6 +116,20 @@ export default defineEventHandler(async (event) => {
 		...aiResult,
 		status: "moderation",
 		decision: {
+			isValidAppeal: aiResult.isValidAppeal !== false,
+			validityReason: String(aiResult.validityReason || "").trim(),
+			abuseScore: Number(aiResult.abuseScore || 0),
+			relevanceScore: Number(aiResult.relevanceScore || 0),
+			containsHumanPortrait: Boolean(aiResult.containsHumanPortrait),
+			containsCityProblem:
+				aiResult.containsCityProblem === undefined
+					? true
+					: Boolean(aiResult.containsCityProblem),
+			textPhotoConsistency: Number(aiResult.textPhotoConsistency || 0),
+			rejectionRecommendation: String(
+				aiResult.rejectionRecommendation || "",
+			).trim(),
+			rejectionReason: String(aiResult.rejectionReason || "").trim(),
 			categoryReason: String(aiResult.categoryReason || "").trim(),
 			priorityReason: String(aiResult.priorityReason || "").trim(),
 			deadlineReason: String(aiResult.deadlineReason || "").trim(),
@@ -133,6 +147,9 @@ export default defineEventHandler(async (event) => {
 			confidenceLevel: String(aiResult.confidenceLevel || ""),
 			needsCarefulReview: Boolean(aiResult.needsCarefulReview),
 			candidateCategories: Array.isArray(aiResult.candidateCategories) ? aiResult.candidateCategories : [],
+			moderationFlags: Array.isArray(aiResult.moderationFlags) ? aiResult.moderationFlags : [],
+			fraudSignals: Array.isArray(aiResult.fraudSignals) ? aiResult.fraudSignals : [],
+			textPhotoConflictReason: String(aiResult.textPhotoConflictReason || "").trim(),
 		},
 	};
 
@@ -178,6 +195,22 @@ export default defineEventHandler(async (event) => {
 					confidencePhoto: normalizedAiResult.decision.confidencePhoto,
 					confidenceLevel: normalizedAiResult.decision.confidenceLevel,
 					needsCarefulReview: normalizedAiResult.decision.needsCarefulReview,
+					isValidAppeal: normalizedAiResult.decision.isValidAppeal,
+					validityReason: normalizedAiResult.decision.validityReason,
+					abuseScore: normalizedAiResult.decision.abuseScore,
+					relevanceScore: normalizedAiResult.decision.relevanceScore,
+					containsHumanPortrait:
+						normalizedAiResult.decision.containsHumanPortrait,
+					containsCityProblem:
+						normalizedAiResult.decision.containsCityProblem,
+					textPhotoConsistency:
+						normalizedAiResult.decision.textPhotoConsistency,
+					rejectionRecommendation:
+						normalizedAiResult.decision.rejectionRecommendation,
+					rejectionReason: normalizedAiResult.decision.rejectionReason,
+					moderationFlags: normalizedAiResult.decision.moderationFlags,
+					fraudSignals: normalizedAiResult.decision.fraudSignals,
+					textPhotoConflictReason: normalizedAiResult.decision.textPhotoConflictReason,
 				},
 			}),
 		],

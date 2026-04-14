@@ -52,6 +52,13 @@ export default defineEventHandler(async (event) => {
 	const nextStatus = isOk ? "new" : "rejected";
 	const originalDecision = createDecisionSnapshot(appeal);
 
+	if (isOk && !appeal.assignedEmployee) {
+		throw createError({
+			statusCode: 400,
+			statusMessage: "Нельзя подтвердить модерацию без назначенного сотрудника",
+		});
+	}
+
 	if (isOk) {
 		appeal.status = nextStatus;
 		appeal.moderationNote = note;

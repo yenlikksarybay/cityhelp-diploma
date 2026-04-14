@@ -123,6 +123,7 @@ const normalizeUiStatus = (status) => {
     height: 230px;
     width: 100%;
     border-radius: $border-r-md;
+    object-fit: cover;
   }
   &__ul {
     display: flex;

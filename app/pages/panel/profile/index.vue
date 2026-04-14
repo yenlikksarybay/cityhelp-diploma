@@ -24,6 +24,13 @@
       </div>
     </div>
 
+    <ThePanelProfileEmployeeRequestCard
+      :role="profile.role"
+      :request="profile.employeeRequest"
+      :is-loading="isEmployeeRequestSaving"
+      @open="openEmployeeModal"
+    />
+
     <div class="profile-page__grid">
       <ThePanelProfileAvatarCard
         v-model="avatarFile"
@@ -48,11 +55,26 @@
       :is-saving="isPasswordSaving"
       @save="savePassword"
     />
+
+    <UiModal
+      :is-open="isEmployeeModalOpen"
+      max-width="520px"
+      title="Стать сотрудником"
+      @close="closeEmployeeModal"
+    >
+      <BecomeEmployeeModal
+        :is-loading="isEmployeeRequestSaving"
+        @close="closeEmployeeModal"
+        @confirm="submitEmployeeRequest"
+      />
+    </UiModal>
   </section>
 </template>
 
 <script setup>
 import ThePanelProfileAvatarCard from "~/components/The/Panel/Profile/AvatarCard.vue";
+import BecomeEmployeeModal from "~/components/Modals/BecomeEmployee.vue";
+import ThePanelProfileEmployeeRequestCard from "~/components/The/Panel/Profile/EmployeeRequestCard.vue";
 import ThePanelProfileInfoCard from "~/components/The/Panel/Profile/InfoCard.vue";
 import ThePanelProfilePasswordCard from "~/components/The/Panel/Profile/PasswordCard.vue";
 
@@ -66,6 +88,8 @@ const isProfileSaving = ref(false);
 const isAvatarSaving = ref(false);
 const isAvatarDeleting = ref(false);
 const isPasswordSaving = ref(false);
+const isEmployeeRequestSaving = ref(false);
+const isEmployeeModalOpen = ref(false);
 
 const profileForm = ref({
   firstName: "",
@@ -128,6 +152,16 @@ const refreshProfile = async () => {
 
   const data = response?.data || response || {};
   fillProfile(data);
+};
+
+const openEmployeeModal = () => {
+  if (isEmployeeRequestSaving.value) return;
+  isEmployeeModalOpen.value = true;
+};
+
+const closeEmployeeModal = () => {
+  if (isEmployeeRequestSaving.value) return;
+  isEmployeeModalOpen.value = false;
 };
 
 const saveProfile = async () => {
@@ -263,6 +297,36 @@ const savePassword = async () => {
     });
   } finally {
     isPasswordSaving.value = false;
+  }
+};
+
+const submitEmployeeRequest = async () => {
+  if (isEmployeeRequestSaving.value) return;
+
+  try {
+    isEmployeeRequestSaving.value = true;
+    await api.client({
+      url: "/profile/employee-request",
+      method: "post",
+    });
+
+    isEmployeeModalOpen.value = false;
+    await refreshProfile();
+    await authStore.setUser();
+
+    useNotify({
+      title: "Заявка отправлена",
+      text: "Теперь она доступна администрации в разделе заявок на сотрудничество.",
+      status: "success",
+    });
+  } catch (error) {
+    useNotify({
+      title: "Не удалось отправить заявку",
+      text: error?.statusMessage || "Попробуйте ещё раз чуть позже.",
+      status: "error",
+    });
+  } finally {
+    isEmployeeRequestSaving.value = false;
   }
 };
 

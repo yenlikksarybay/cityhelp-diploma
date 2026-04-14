@@ -68,6 +68,10 @@ export const useTitleStore = defineStore("title", () => {
 				title.value = "Сотрудники"
 				activeRoute.value = '/panel/admin/staff'
 				break;
+			case '/panel/admin/employee-requests':
+				title.value = "Заявки на сотрудничество"
+				activeRoute.value = '/panel/admin/employee-requests'
+				break;
 			case '/panel/admin/staff/':
 				title.value = "Сотрудник"
 				activeRoute.value = '/panel/admin/staff'

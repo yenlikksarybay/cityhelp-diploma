@@ -6,20 +6,33 @@
       <div v-if="text" class="answer__box">
         <div class="answer__top">
           <p class="answer__role">
-            {{ authorLabel }} - <span class="answer__baige">{{ authorName }}</span>
+            {{ authorLabel }} -
+            <span class="answer__baige">{{ authorName }}</span>
           </p>
           <p class="answer__date">
-            {{ formatDateTime(props.appeal?.updatedAt || props.appeal?.createdAt) }}
+            {{
+              formatDateTime(props.appeal?.updatedAt || props.appeal?.createdAt)
+            }}
           </p>
         </div>
         <p class="answer__comment">{{ text }}</p>
-        <div v-if="props.appeal?.aiResult?.photoObservation" class="answer__vision">
+        <div
+          v-if="props.appeal?.aiResult?.photoObservation"
+          class="answer__vision"
+        >
           <p class="answer__vision-title">Что увидел AI на фото</p>
-          <p class="answer__vision-text">{{ props.appeal.aiResult.photoObservation }}</p>
+          <p class="answer__vision-text">
+            {{ props.appeal.aiResult.photoObservation }}
+          </p>
         </div>
-        <div v-if="props.appeal?.aiResult?.analysisSummary" class="answer__vision">
+        <div
+          v-if="props.appeal?.aiResult?.analysisSummary"
+          class="answer__vision"
+        >
           <p class="answer__vision-title">Как AI объяснил решение</p>
-          <p class="answer__vision-text">{{ props.appeal.aiResult.analysisSummary }}</p>
+          <p class="answer__vision-text">
+            {{ props.appeal.aiResult.analysisSummary }}
+          </p>
         </div>
         <div v-if="confidenceItems.length" class="answer__vision">
           <p class="answer__vision-title">Уверенность AI</p>
@@ -33,12 +46,48 @@
               {{ item.label }}: {{ item.value }}%
             </span>
           </div>
-          <p v-if="props.appeal?.aiResult?.needsCarefulReview" class="answer__vision-text">
+          <p
+            v-if="props.appeal?.aiResult?.needsCarefulReview"
+            class="answer__vision-text"
+          >
             Требует внимательной проверки модератором.
           </p>
         </div>
+        <div v-if="moderationFlags.length || conflictReason" class="answer__vision">
+          <p class="answer__vision-title">Риски несоответствия</p>
+          <p v-if="conflictReason" class="answer__vision-text">
+            {{ conflictReason }}
+          </p>
+          <ul v-if="moderationFlags.length" class="answer__list">
+            <li
+              v-for="(item, index) in moderationFlags"
+              :key="`moderation-flag-${index}`"
+              class="answer__list-item"
+            >
+              {{ item }}
+            </li>
+          </ul>
+        </div>
+        <div
+          v-if="validityItems.length || rejectionReason"
+          class="answer__vision"
+        >
+          <p class="answer__vision-title">Проверка валидности обращения</p>
+          <ul v-if="validityItems.length" class="answer__list">
+            <li
+              v-for="item in validityItems"
+              :key="item.key"
+              class="answer__list-item"
+            >
+              <strong>{{ item.label }}:</strong> {{ item.value }}
+            </li>
+          </ul>
+          <p v-if="rejectionReason" class="answer__vision-text">
+            {{ rejectionReason }}
+          </p>
+        </div>
         <div v-if="candidateCategories.length" class="answer__vision">
-          <p class="answer__vision-title">Shortlist категорий до Gemini</p>
+          <p class="answer__vision-title">Shortlist категорий</p>
           <div class="answer__candidate-list">
             <span
               v-for="item in candidateCategories"
@@ -49,7 +98,10 @@
             </span>
           </div>
         </div>
-        <div v-if="props.appeal?.aiResult?.photoDetails?.length" class="answer__vision">
+        <div
+          v-if="props.appeal?.aiResult?.photoDetails?.length"
+          class="answer__vision"
+        >
           <p class="answer__vision-title">Подробности на фото</p>
           <ul class="answer__list">
             <li
@@ -118,36 +170,48 @@
           >
             <div class="answer__step-head">
               <div class="answer__step-meta">
-                <p class="answer__step-title">{{ item.title || 'Комментарий' }}</p>
+                <p class="answer__step-title">
+                  {{ item.title || "Комментарий" }}
+                </p>
                 <p class="answer__step-author">
                   {{ item.authorName || roleLabel(item.role) }}
                 </p>
               </div>
-              <p class="answer__step-date">{{ formatDateTime(item.createdAt) }}</p>
+              <p class="answer__step-date">
+                {{ formatDateTime(item.createdAt) }}
+              </p>
             </div>
             <p v-if="item.text" class="answer__step-text">{{ item.text }}</p>
-            <div v-if="item.statusFrom || item.statusTo" class="answer__step-status">
-              <span v-if="item.statusFrom">{{ statusText(item.statusFrom) }}</span>
+            <div
+              v-if="item.statusFrom || item.statusTo"
+              class="answer__step-status"
+            >
+              <span v-if="item.statusFrom">{{
+                statusText(item.statusFrom)
+              }}</span>
               <UiIcon icon="arrow-i" size="size-16" />
               <span v-if="item.statusTo">{{ statusText(item.statusTo) }}</span>
             </div>
-            <div v-if="item.meta && Object.keys(item.meta).length" class="answer__step-meta-list">
+            <div
+              v-if="item.meta && Object.keys(item.meta).length"
+              class="answer__step-meta-list"
+            >
               <p
                 v-for="metaItem in formatMeta(item.meta)"
                 :key="metaItem.key"
                 class="answer__step-meta-item"
               >
                 <span class="answer__step-meta-key">{{ metaItem.label }}:</span>
-                <span class="answer__step-meta-value">{{ metaItem.value }}</span>
+                <span class="answer__step-meta-value">{{
+                  metaItem.value
+                }}</span>
               </p>
             </div>
           </article>
         </div>
       </div>
 
-      <div v-else class="answer__empty">
-        Пока нет ответа
-      </div>
+      <div v-else class="answer__empty">Пока нет ответа</div>
     </div>
   </section>
 </template>
@@ -160,9 +224,11 @@ const props = defineProps({
   },
 });
 
-const timeline = computed(() => (props.appeal?.timeline || []).slice().sort(
-  (a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0),
-));
+const timeline = computed(() =>
+  (props.appeal?.timeline || [])
+    .slice()
+    .sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0)),
+);
 
 const authorLabel = computed(() => {
   const latest = [...timeline.value].pop();
@@ -226,16 +292,32 @@ const statusText = (status) => {
 const decisionReasons = computed(() => {
   const decision = props.appeal?.aiResult?.decision || {};
   return [
-    { key: "category", label: "Категория", value: decision.categoryReason || "—" },
-    { key: "priority", label: "Приоритет", value: decision.priorityReason || "—" },
-    { key: "deadline", label: "Дедлайн", value: decision.deadlineReason || "—" },
+    {
+      key: "category",
+      label: "Категория",
+      value: decision.categoryReason || "—",
+    },
+    {
+      key: "priority",
+      label: "Приоритет",
+      value: decision.priorityReason || "—",
+    },
+    {
+      key: "deadline",
+      label: "Дедлайн",
+      value: decision.deadlineReason || "—",
+    },
     { key: "status", label: "Статус", value: decision.statusReason || "—" },
     {
       key: "employee",
       label: "Сотрудник",
       value: decision.assignedEmployeeReason || "—",
     },
-    { key: "location", label: "Локация", value: decision.locationReason || "—" },
+    {
+      key: "location",
+      label: "Локация",
+      value: decision.locationReason || "—",
+    },
   ].filter((item) => String(item.value || "").trim() && item.value !== "—");
 });
 
@@ -255,7 +337,9 @@ const confidenceItems = computed(() => {
     { key: "priority", label: "Приоритет", raw: aiResult.confidencePriority },
     { key: "photo", label: "Фото", raw: aiResult.confidencePhoto },
   ]
-    .filter((item) => item.raw !== undefined && item.raw !== null && item.raw !== "")
+    .filter(
+      (item) => item.raw !== undefined && item.raw !== null && item.raw !== "",
+    )
     .map((item) => ({
       ...item,
       value: formatConfidence(item.raw),
@@ -263,14 +347,108 @@ const confidenceItems = computed(() => {
     }));
 });
 
-const candidateCategories = computed(() => props.appeal?.aiResult?.candidateCategories || []);
+const candidateCategories = computed(
+  () => props.appeal?.aiResult?.candidateCategories || [],
+);
+const moderationFlags = computed(() => {
+  const labels = {
+    photo_mismatch: "Фото не совпадает с содержанием обращения",
+    possible_selfie_instead_of_issue: "Фото похоже на селфи вместо подтверждения проблемы",
+    photo_shows_person_not_issue: "На фото человек, а не городская проблема",
+    fraud_signals_detected: "AI заметил признаки потенциально ложного обращения",
+    invalid_appeal_detected: "AI считает обращение сомнительным и рекомендует ручную проверку",
+    no_city_problem_detected: "На фото не обнаружена городская проблема",
+  };
+
+  return (props.appeal?.aiResult?.moderationFlags || []).map(
+    (item) => labels[item] || item,
+  );
+});
+const conflictReason = computed(
+  () =>
+    props.appeal?.aiResult?.textPhotoConflictReason ||
+    props.appeal?.aiResult?.decision?.textPhotoConflictReason ||
+    "",
+);
+const rejectionReason = computed(
+  () =>
+    props.appeal?.aiResult?.rejectionReason ||
+    props.appeal?.aiResult?.decision?.rejectionReason ||
+    "",
+);
+const validityItems = computed(() => {
+  const aiResult = props.appeal?.aiResult || {};
+  const decision = aiResult.decision || {};
+  const isValidAppeal =
+    decision.isValidAppeal ?? aiResult.isValidAppeal;
+  const validityReason =
+    decision.validityReason || aiResult.validityReason || "";
+  const rejectionRecommendation =
+    decision.rejectionRecommendation ||
+    aiResult.rejectionRecommendation ||
+    "";
+  const abuseScore = Number(
+    decision.abuseScore ?? aiResult.abuseScore ?? NaN,
+  );
+  const relevanceScore = Number(
+    decision.relevanceScore ?? aiResult.relevanceScore ?? NaN,
+  );
+  const textPhotoConsistency = Number(
+    decision.textPhotoConsistency ?? aiResult.textPhotoConsistency ?? NaN,
+  );
+
+  return [
+    {
+      key: "isValidAppeal",
+      label: "Статус проверки",
+      value: isValidAppeal === false ? "Сомнительное обращение" : "Признаки обращения подтверждены",
+    },
+    {
+      key: "validityReason",
+      label: "Вывод AI",
+      value: validityReason,
+    },
+    {
+      key: "rejectionRecommendation",
+      label: "Рекомендация",
+      value: rejectionRecommendation || "",
+    },
+    {
+      key: "abuseScore",
+      label: "Риск ложного обращения",
+      value: Number.isFinite(abuseScore) ? `${Math.round(abuseScore * 100)}%` : "",
+    },
+    {
+      key: "relevanceScore",
+      label: "Связь фото с проблемой",
+      value: Number.isFinite(relevanceScore) ? `${Math.round(relevanceScore * 100)}%` : "",
+    },
+    {
+      key: "textPhotoConsistency",
+      label: "Совпадение текста и фото",
+      value: Number.isFinite(textPhotoConsistency) ? `${Math.round(textPhotoConsistency * 100)}%` : "",
+    },
+  ].filter((item) => String(item.value || "").trim());
+});
 
 const formatMeta = (meta = {}) => {
   const entries = [];
-  if (meta.category) entries.push({ key: "category", label: "Категория", value: meta.category });
-  if (meta.priority) entries.push({ key: "priority", label: "Приоритет", value: meta.priority });
-  if (meta.deadlineAt) entries.push({ key: "deadlineAt", label: "Дедлайн", value: formatDateTimeToDots(meta.deadlineAt) || meta.deadlineAt });
-  else if (meta.deadlineDate) entries.push({ key: "deadlineDate", label: "Дедлайн", value: meta.deadlineDate });
+  if (meta.category)
+    entries.push({ key: "category", label: "Категория", value: meta.category });
+  if (meta.priority)
+    entries.push({ key: "priority", label: "Приоритет", value: meta.priority });
+  if (meta.deadlineAt)
+    entries.push({
+      key: "deadlineAt",
+      label: "Дедлайн",
+      value: formatDateTimeToDots(meta.deadlineAt) || meta.deadlineAt,
+    });
+  else if (meta.deadlineDate)
+    entries.push({
+      key: "deadlineDate",
+      label: "Дедлайн",
+      value: meta.deadlineDate,
+    });
   if (meta.assignedEmployee?.name) {
     entries.push({
       key: "assignedEmployee",
@@ -278,9 +456,12 @@ const formatMeta = (meta = {}) => {
       value: meta.assignedEmployee.name,
     });
   }
-  if (meta.note) entries.push({ key: "note", label: "Комментарий", value: meta.note });
-  if (meta.decision) entries.push({ key: "decision", label: "Решение", value: meta.decision });
-  if (meta.score) entries.push({ key: "score", label: "Оценка", value: meta.score });
+  if (meta.note)
+    entries.push({ key: "note", label: "Комментарий", value: meta.note });
+  if (meta.decision)
+    entries.push({ key: "decision", label: "Решение", value: meta.decision });
+  if (meta.score)
+    entries.push({ key: "score", label: "Оценка", value: meta.score });
   if (meta.fixedImagesCount !== undefined) {
     entries.push({
       key: "fixedImagesCount",

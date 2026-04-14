@@ -42,6 +42,8 @@
           <ThePanelAppealAdminReviewForm
             :show="showAdminReviewForm"
             :is-submitting="isReviewSubmitting"
+            :can-approve="hasAssignedEmployee"
+            missing-employee-message="Назначьте сотрудника через «Изменить данные», чтобы подтвердить модерацию."
             @review="submitReview"
           />
 
@@ -177,6 +179,8 @@ const currentAssignedEmployeeId = computed(() =>
       "",
   ),
 );
+
+const hasAssignedEmployee = computed(() => Boolean(currentAssignedEmployeeId.value));
 
 const isOwner = computed(
   () =>

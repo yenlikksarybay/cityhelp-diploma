@@ -35,6 +35,15 @@ export const DEFAULT_FAQ_ITEMS = [
     order: 4,
     isActive: true,
   },
+  {
+    key: "faq-employee-request",
+    question: "Как стать сотрудником CityHelp?",
+    answer:
+      "Откройте профиль и нажмите кнопку «Стать сотрудником». После подтверждения заявка уйдёт администратору или супер-администратору. Если заявку отклонят, кнопку можно будет использовать снова.",
+    category: "Сотрудничество",
+    order: 5,
+    isActive: true,
+  },
 ];
 
 export const DEFAULT_CATEGORIES = [

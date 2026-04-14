@@ -9,14 +9,34 @@ import {
 } from "../constants/appeal.js";
 import { DEFAULT_CATEGORIES, CATEGORY_PLAYBOOK } from "../constants/knowledgeBase.js";
 
-const PROMPT_VERSION = 3;
-const ANALYSIS_PIPELINE_VERSION = "cityhelp-ai-v2.1";
+const PROMPT_VERSION = 4;
+const ANALYSIS_PIPELINE_VERSION = "cityhelp-ai-v2.2";
 const CONFIDENCE_THRESHOLDS = {
 	high: 0.8,
 	medium: 0.5,
 };
 const CATEGORY_CANDIDATE_LIMIT = 4;
+const CIVIC_REPORT_KEYWORDS = [
+	"мусор",
+	"свал",
+	"контейнер",
+	"яма",
+	"дорог",
+	"асфальт",
+	"фонар",
+	"свет",
+	"подъезд",
+	"вода",
+	"отоп",
+	"теч",
+	"двор",
+	"уборк",
+	"отход",
+	"люк",
+	"знак",
+];
 
+const VALIDITY_PROMPT_KEYS = ["appeal_create_analysis_validity"];
 const VISION_PROMPT_KEYS = ["appeal_create_analysis_vision"];
 const CLASSIFICATION_PROMPT_KEYS = [
 	"appeal_create_analysis_context",
@@ -24,9 +44,25 @@ const CLASSIFICATION_PROMPT_KEYS = [
 	"appeal_create_analysis_playbook",
 	"appeal_create_analysis_output",
 ];
-const ANALYSIS_PROMPT_KEYS = [...VISION_PROMPT_KEYS, ...CLASSIFICATION_PROMPT_KEYS];
+const ANALYSIS_PROMPT_KEYS = [
+	...VALIDITY_PROMPT_KEYS,
+	...VISION_PROMPT_KEYS,
+	...CLASSIFICATION_PROMPT_KEYS,
+];
 
 const DEFAULT_ANALYSIS_PROMPTS = {
+	appeal_create_analysis_validity: {
+		version: PROMPT_VERSION,
+		systemPrompt:
+			"Ты проверяешь, является ли обращение гражданина реальной городской проблемой. Отвечай только на русском языке и только JSON. Если на фото нет признаков городской проблемы, а изображён человек, селфи, шутка, мем, случайная сцена или несвязанный объект, не классифицируй это как нормальное обращение.",
+		userTemplate:
+			"Проверь обращение на валидность.\nОписание: {{description}}\nЛокация: {{location}}\nФото: {{photos}}\n\nВерни JSON строго по схеме: {\"isValidAppeal\":true,\"validityReason\":\"...\",\"abuseScore\":0.0,\"relevanceScore\":0.0,\"containsHumanPortrait\":false,\"containsCityProblem\":true,\"textPhotoConsistency\":0.0,\"rejectionRecommendation\":\"...\",\"rejectionReason\":\"...\",\"uncertainties\":[\"...\"]}. abuseScore, relevanceScore и textPhotoConsistency - числа от 0 до 1.",
+		guardrails:
+			"Не выдумывай проблему, если на фото её нет. Если изображён человек крупным планом и нет городской неисправности, это сильный сигнал нерелевантного обращения. Если текст и фото противоречат друг другу, укажи это. Если данных мало, не отклоняй автоматически, а отправляй на ручную проверку через uncertainties.",
+		exampleInput: "Описание: Во дворе мусор. На фото крупным планом лицо человека без признаков городской проблемы.",
+		exampleOutput:
+			"{\"isValidAppeal\":false,\"validityReason\":\"На фото не видно мусора или другой городской проблемы, в кадре в основном человек крупным планом.\",\"abuseScore\":0.94,\"relevanceScore\":0.11,\"containsHumanPortrait\":true,\"containsCityProblem\":false,\"textPhotoConsistency\":0.08,\"rejectionRecommendation\":\"likely_fake_or_irrelevant\",\"rejectionReason\":\"Фото не подтверждает заявленную проблему и похоже на нерелевантное обращение.\",\"uncertainties\":[]}",
+	},
 	appeal_create_analysis_context: {
 		version: PROMPT_VERSION,
 		systemPrompt:
@@ -41,12 +77,12 @@ const DEFAULT_ANALYSIS_PROMPTS = {
 		systemPrompt:
 			"Ты анализируешь фотографии городского обращения. Опиши только то, что видно на фото. Верни только JSON на русском языке.",
 		userTemplate:
-			"Описание пользователя: {{description}}\n\nВерни JSON строго по схеме: {\"photoObservation\":\"...\",\"photoDetails\":[\"...\"],\"photoRelevant\":true,\"photoMismatch\":false,\"confidencePhoto\":0.0,\"uncertainties\":[\"...\"]}. confidencePhoto - число от 0 до 1, где 1 означает, что фото хорошо подтверждает проблему. photoDetails должен содержать конкретные видимые детали: объекты, повреждения, следы, окружение, масштаб. Если фото малоинформативное, объясни это в uncertainties.",
+			"Описание пользователя: {{description}}\n\nВерни JSON строго по схеме: {\"photoObservation\":\"...\",\"photoDetails\":[\"...\"],\"photoRelevant\":true,\"photoMismatch\":false,\"confidencePhoto\":0.0,\"containsPerson\":false,\"isSelfie\":false,\"sceneType\":\"...\",\"textPhotoConflictReason\":\"...\",\"fraudSignals\":[\"...\"],\"uncertainties\":[\"...\"]}. confidencePhoto - число от 0 до 1, где 1 означает, что фото хорошо подтверждает проблему. photoDetails должен содержать конкретные видимые детали: объекты, повреждения, следы, окружение, масштаб. Если фото малоинформативное, объясни это в uncertainties.",
 		guardrails:
-			"Не повторяй комментарий пользователя вместо анализа фото. Не придумывай невидимые объекты. Если видно мало, прямо скажи, чего не хватает.",
+			"Не повторяй комментарий пользователя вместо анализа фото. Не придумывай невидимые объекты. Если видно мало, прямо скажи, чего не хватает. Если фото похоже на селфи, личное фото или не показывает городскую проблему, отметь это в isSelfie, photoMismatch, textPhotoConflictReason и fraudSignals.",
 		exampleInput: "Фото дороги с повреждением покрытия.",
 		exampleOutput:
-			"{\"photoObservation\":\"На фото видно повреждённый участок дорожного покрытия с неровностью и лужей рядом.\",\"photoDetails\":[\"повреждение асфальта\",\"неровная поверхность\",\"лужа возле дефекта\",\"участок проезжей части\"],\"photoRelevant\":true,\"photoMismatch\":false,\"confidencePhoto\":0.84,\"uncertainties\":[\"по фото нельзя точно оценить глубину повреждения\"]}",
+			"{\"photoObservation\":\"На фото видно повреждённый участок дорожного покрытия с неровностью и лужей рядом.\",\"photoDetails\":[\"повреждение асфальта\",\"неровная поверхность\",\"лужа возле дефекта\",\"участок проезжей части\"],\"photoRelevant\":true,\"photoMismatch\":false,\"confidencePhoto\":0.84,\"containsPerson\":false,\"isSelfie\":false,\"sceneType\":\"городская проблема\",\"textPhotoConflictReason\":\"\",\"fraudSignals\":[],\"uncertainties\":[\"по фото нельзя точно оценить глубину повреждения\"]}",
 	},
 	appeal_create_analysis_classification: {
 		version: PROMPT_VERSION,
@@ -314,6 +350,33 @@ const getTopCategoryCandidates = ({ description, location, vision, categories, f
 	}));
 };
 
+const descriptionLooksLikeCityReport = (description = "") => {
+	const normalized = String(description || "").toLowerCase();
+	return CIVIC_REPORT_KEYWORDS.some((keyword) => normalized.includes(keyword));
+};
+
+const detectManualReviewSignals = ({ description = "", vision = {} }) => {
+	const moderationFlags = [];
+	const fraudSignals = normalizeList(vision.fraudSignals, 6);
+	const textPhotoConflictReason = String(vision.textPhotoConflictReason || "").trim();
+	const looksLikeCityReport = descriptionLooksLikeCityReport(description);
+	const selfieConflict = Boolean(vision.isSelfie) && looksLikeCityReport;
+	const personConflict = Boolean(vision.containsPerson) && !vision.photoRelevant && looksLikeCityReport;
+	const explicitMismatch = Boolean(vision.photoMismatch);
+
+	if (explicitMismatch) moderationFlags.push("photo_mismatch");
+	if (selfieConflict) moderationFlags.push("possible_selfie_instead_of_issue");
+	if (personConflict) moderationFlags.push("photo_shows_person_not_issue");
+	if (fraudSignals.length) moderationFlags.push("fraud_signals_detected");
+
+	return {
+		forcedManualReview: explicitMismatch || selfieConflict || personConflict || fraudSignals.length > 0,
+		moderationFlags: Array.from(new Set(moderationFlags)),
+		fraudSignals,
+		textPhotoConflictReason,
+	};
+};
+
 const fallbackAnalysis = ({ description, location }) => {
 	const normalized = String(description || "").toLowerCase();
 
@@ -363,6 +426,9 @@ const fallbackAnalysis = ({ description, location }) => {
 		statusReason: "После автоматического анализа обращение отправлено на модерацию для проверки администратором.",
 		assignedEmployeeReason: "",
 		locationReason: "",
+		moderationFlags: [],
+		fraudSignals: [],
+		textPhotoConflictReason: "",
 	};
 };
 
@@ -492,6 +558,40 @@ const getLocationReason = (location) => {
 	return "Координаты не указаны или некорректны, поэтому модератору нужно уточнить место.";
 };
 
+const runValidityAnalysis = async ({ promptMap, payload }) => {
+	const promptPayload = {
+		description: payload.description,
+		location: payload.location,
+		photos: payload.photos,
+	};
+	const { systemInstruction, userPrompt } = buildPromptText(
+		VALIDITY_PROMPT_KEYS,
+		promptMap,
+		promptPayload,
+	);
+	const result = await geminiService.generateJson({
+		systemInstruction,
+		prompt: userPrompt,
+		temperature: 0.1,
+		images: payload.photos || [],
+	});
+	const json = result.json || {};
+
+	return {
+		raw: result.raw,
+		isValidAppeal: json.isValidAppeal === undefined ? true : normalizeBoolean(json.isValidAppeal),
+		validityReason: String(json.validityReason || "").trim(),
+		abuseScore: clampConfidence(json.abuseScore, 0.15),
+		relevanceScore: clampConfidence(json.relevanceScore, 0.7),
+		containsHumanPortrait: normalizeBoolean(json.containsHumanPortrait),
+		containsCityProblem: json.containsCityProblem === undefined ? true : normalizeBoolean(json.containsCityProblem),
+		textPhotoConsistency: clampConfidence(json.textPhotoConsistency, 0.7),
+		rejectionRecommendation: String(json.rejectionRecommendation || "").trim(),
+		rejectionReason: String(json.rejectionReason || "").trim(),
+		uncertainties: normalizeList(json.uncertainties, 6),
+	};
+};
+
 const runVisionAnalysis = async ({ promptMap, payload }) => {
 	const promptPayload = {
 		description: payload.description,
@@ -513,6 +613,11 @@ const runVisionAnalysis = async ({ promptMap, payload }) => {
 		photoRelevant: json.photoRelevant === undefined ? true : normalizeBoolean(json.photoRelevant),
 		photoMismatch: normalizeBoolean(json.photoMismatch),
 		confidencePhoto: clampConfidence(json.confidencePhoto, 0.5),
+		containsPerson: normalizeBoolean(json.containsPerson),
+		isSelfie: normalizeBoolean(json.isSelfie),
+		sceneType: String(json.sceneType || "").trim(),
+		textPhotoConflictReason: String(json.textPhotoConflictReason || "").trim(),
+		fraudSignals: normalizeList(json.fraudSignals, 6),
 		uncertainties: normalizeList(json.uncertainties, 6),
 	};
 };
@@ -559,6 +664,19 @@ export const appealAiService = {
 			description: payload.description,
 			location: payload.location,
 		});
+		let validity = {
+			raw: "",
+			isValidAppeal: true,
+			validityReason: "",
+			abuseScore: 0.15,
+			relevanceScore: 0.7,
+			containsHumanPortrait: false,
+			containsCityProblem: true,
+			textPhotoConsistency: 0.7,
+			rejectionRecommendation: "",
+			rejectionReason: "",
+			uncertainties: [],
+		};
 
 		let vision = {
 			raw: "",
@@ -567,6 +685,11 @@ export const appealAiService = {
 			photoRelevant: true,
 			photoMismatch: false,
 			confidencePhoto: 0.5,
+			containsPerson: false,
+			isSelfie: false,
+			sceneType: "",
+			textPhotoConflictReason: "",
+			fraudSignals: [],
 			uncertainties: [],
 		};
 		let classificationRaw = "";
@@ -574,6 +697,95 @@ export const appealAiService = {
 		let candidateCategories = [];
 
 		try {
+			validity = await runValidityAnalysis({ promptMap, payload });
+			if (!validity.isValidAppeal) {
+				const priority = "low";
+				const deadlineAt = getDeadlineAt(priority);
+				const validityReason =
+					validity.validityReason ||
+					"Обращение выглядит нерелевантным и требует проверки модератором.";
+				const rejectionReason =
+					validity.rejectionReason ||
+					"Фото или описание не подтверждают наличие городской проблемы.";
+
+				return {
+					...fallback,
+					analysisPipelineVersion: ANALYSIS_PIPELINE_VERSION,
+					promptVersion: PROMPT_VERSION,
+					category: "general",
+					subCategory: "Уточнение",
+					priority,
+					status: "moderation",
+					deadlineAt,
+					deadlineReason: getDeadlineReason(priority),
+					assignedEmployee: null,
+					assignedEmployeeReason:
+						"Сотрудник не назначен автоматически, потому что обращение требует ручной проверки модератором.",
+					locationCheck: Boolean(payload.location?.x && payload.location?.y),
+					locationReason: getLocationReason(payload.location),
+					photoObservation: validityReason,
+					photoDetails: [],
+					photoRelevant: false,
+					photoMismatch: true,
+					containsPerson: validity.containsHumanPortrait,
+					isSelfie: validity.containsHumanPortrait && !validity.containsCityProblem,
+					sceneType: validity.containsHumanPortrait ? "нерелевантное фото" : "требует проверки",
+					textPhotoConflictReason: rejectionReason,
+					fraudSignals: Array.from(
+						new Set(
+							[
+								validity.rejectionRecommendation,
+								!validity.containsCityProblem ? "no_city_problem_detected" : "",
+								validity.containsHumanPortrait ? "human_portrait_detected" : "",
+								validity.textPhotoConsistency < 0.4 ? "text_photo_mismatch" : "",
+							].filter(Boolean),
+						),
+					),
+					moderationFlags: [
+						"invalid_appeal_detected",
+						!validity.containsCityProblem ? "no_city_problem_detected" : "",
+						validity.containsHumanPortrait ? "photo_shows_person_not_issue" : "",
+						validity.textPhotoConsistency < 0.4 ? "photo_mismatch" : "",
+					].filter(Boolean),
+					confidenceCategory: 0.22,
+					confidencePriority: 0.3,
+					confidencePhoto: Math.min(0.25, validity.relevanceScore),
+					confidenceLevel: "low",
+					needsCarefulReview: true,
+					isValidAppeal: false,
+					validityReason,
+					abuseScore: validity.abuseScore,
+					relevanceScore: validity.relevanceScore,
+					containsHumanPortrait: validity.containsHumanPortrait,
+					containsCityProblem: validity.containsCityProblem,
+					textPhotoConsistency: validity.textPhotoConsistency,
+					rejectionRecommendation:
+						validity.rejectionRecommendation || "likely_fake_or_irrelevant",
+					rejectionReason,
+					shortSummary:
+						"AI считает обращение нерелевантным или недостаточно связанным с городской проблемой.",
+					analysisSummary: `${validityReason} ${rejectionReason}`.trim(),
+					evidence: [validityReason, rejectionReason].filter(Boolean),
+					uncertainties: validity.uncertainties,
+					assumptions: [],
+					needsClarification: false,
+					clarificationReason: "",
+					categoryReason:
+						"Категория general выбрана временно, потому что обращение не подтверждено как реальная городская проблема.",
+					subCategoryReason:
+						"Подкатегория 'Уточнение' используется до решения модератора.",
+					priorityReason:
+						"Для спорного или нерелевантного обращения установлен низкий приоритет до проверки модератором.",
+					statusReason:
+						"Обращение отправлено на модерацию, потому что AI рекомендует ручную проверку перед дальнейшей обработкой.",
+					raw: {
+						validity: validity.raw,
+						vision: "",
+						classification: "",
+					},
+				};
+			}
+
 			vision = await runVisionAnalysis({ promptMap, payload });
 			candidateCategories = getTopCategoryCandidates({
 				description: payload.description,
@@ -621,7 +833,12 @@ export const appealAiService = {
 		const priority = normalizePriority(classification.priority, fallback.priority);
 		const deadlineAt = getDeadlineAt(priority);
 		const locationCheck = Boolean(payload.location?.x && payload.location?.y);
-		const assignedEmployee = chosenEmployee
+		const manualReviewSignals = detectManualReviewSignals({
+			description: payload.description,
+			vision,
+		});
+		const forcedGeneralCategory = manualReviewSignals.forcedManualReview;
+		const assignedEmployee = !forcedGeneralCategory && chosenEmployee
 			? {
 					id: chosenEmployee.id,
 					name: chosenEmployee.name,
@@ -638,12 +855,16 @@ export const appealAiService = {
 			...vision.uncertainties,
 			...normalizeList(classification.uncertainties, 8),
 		].slice(0, 10);
-		const confidenceCategory = clampConfidence(
+		let confidenceCategory = clampConfidence(
 			classification.confidenceCategory,
 			category === fallback.category ? 0.66 : 0.58,
 		);
 		const confidencePriority = clampConfidence(classification.confidencePriority, 0.6);
-		const confidencePhoto = clampConfidence(vision.confidencePhoto, 0.5);
+		let confidencePhoto = clampConfidence(vision.confidencePhoto, 0.5);
+		if (forcedGeneralCategory) {
+			confidenceCategory = Math.min(confidenceCategory, 0.34);
+			confidencePhoto = Math.min(confidencePhoto, 0.24);
+		}
 		const confidenceLevel = getConfidenceLevel(confidenceCategory, confidencePriority, confidencePhoto);
 		const needsCarefulReview =
 			confidenceLevel === "medium" ||
@@ -655,13 +876,16 @@ export const appealAiService = {
 			confidencePriority < CONFIDENCE_THRESHOLDS.medium ||
 			confidencePhoto < CONFIDENCE_THRESHOLDS.medium;
 
+		const resolvedCategory = forcedGeneralCategory ? "general" : category;
+		const resolvedSubCategory = forcedGeneralCategory ? "Уточнение" : subCategory;
+
 		const result = {
 			...fallback,
 			...classification,
 			analysisPipelineVersion: ANALYSIS_PIPELINE_VERSION,
 			promptVersion: PROMPT_VERSION,
-			category,
-			subCategory,
+			category: resolvedCategory,
+			subCategory: resolvedSubCategory,
 			priority,
 			candidateCategories: candidateCategories.map((item) => ({
 				key: item.key,
@@ -675,44 +899,71 @@ export const appealAiService = {
 			assignedEmployee,
 			assignedEmployeeReason: assignedEmployee
 				? `Выбран сотрудник ${assignedEmployee.name} с текущей нагрузкой ${assignedEmployee.load}.`
-				: "Активный сотрудник для назначения не найден.",
+				: forcedGeneralCategory
+					? "Сотрудник не назначен автоматически, потому что фото не подтверждает проблему и обращение требует ручной модерации."
+					: "Активный сотрудник для назначения не найден.",
 			locationCheck,
 			locationReason: getLocationReason(payload.location),
 			photoObservation,
 			photoDetails,
 			photoRelevant: vision.photoRelevant,
 			photoMismatch: vision.photoMismatch,
+			containsPerson: vision.containsPerson,
+			isSelfie: vision.isSelfie,
+			sceneType: vision.sceneType,
+			textPhotoConflictReason: manualReviewSignals.textPhotoConflictReason,
+			fraudSignals: manualReviewSignals.fraudSignals,
+			moderationFlags: manualReviewSignals.moderationFlags,
+			isValidAppeal: true,
+			validityReason: validity.validityReason,
+			abuseScore: validity.abuseScore,
+			relevanceScore: validity.relevanceScore,
+			containsHumanPortrait: validity.containsHumanPortrait,
+			containsCityProblem: validity.containsCityProblem,
+			textPhotoConsistency: validity.textPhotoConsistency,
+			rejectionRecommendation: validity.rejectionRecommendation,
+			rejectionReason: validity.rejectionReason,
 			confidenceCategory,
 			confidencePriority,
 			confidencePhoto,
 			confidenceLevel,
-			needsCarefulReview,
+			needsCarefulReview: needsCarefulReview || forcedGeneralCategory,
 			shortSummary: buildShortSummary({
 				description: payload.description,
 				photoObservation,
 				shortSummary: classification.shortSummary,
-				category,
-				subCategory,
+				category: resolvedCategory,
+				subCategory: resolvedSubCategory,
 			}),
 			evidence: evidence.length ? evidence : photoDetails.slice(0, 6),
 			uncertainties,
 			assumptions: normalizeList(classification.assumptions, 8),
 			needsClarification:
-				normalizeBoolean(classification.needsClarification) || !locationCheck || vision.photoMismatch || hasLowConfidence,
+				normalizeBoolean(classification.needsClarification) || !locationCheck || vision.photoMismatch || hasLowConfidence || forcedGeneralCategory,
 			clarificationReason:
 				String(classification.clarificationReason || "").trim() ||
-				(hasLowConfidence ? "AI указал низкую уверенность, поэтому обращение требует дополнительной проверки." : ""),
+				(forcedGeneralCategory
+					? manualReviewSignals.textPhotoConflictReason ||
+						"Фото не подтверждает заявленную городскую проблему, поэтому обращение требует ручной проверки модератором."
+					: hasLowConfidence
+						? "AI указал низкую уверенность, поэтому обращение требует дополнительной проверки."
+						: ""),
 			categoryReason:
-				String(classification.categoryReason || "").trim() ||
-				`Категория "${category}" выбрана по совпадению описания, фото-наблюдений и справочника CityHelp.`,
+				forcedGeneralCategory
+					? "Обращение переведено в общую проверку, потому что фото выглядит нерелевантным или не подтверждает указанную проблему."
+					: String(classification.categoryReason || "").trim() ||
+						`Категория "${resolvedCategory}" выбрана по совпадению описания, фото-наблюдений и справочника CityHelp.`,
 			subCategoryReason:
-				String(classification.subCategoryReason || "").trim() ||
-				(subCategory ? `Подкатегория "${subCategory}" точнее всего описывает выявленный тип проблемы.` : ""),
+				forcedGeneralCategory
+					? "Подкатегория 'Уточнение' выбрана до ручной проверки модератором."
+					: String(classification.subCategoryReason || "").trim() ||
+						(resolvedSubCategory ? `Подкатегория "${resolvedSubCategory}" точнее всего описывает выявленный тип проблемы.` : ""),
 			priorityReason:
 				String(classification.priorityReason || "").trim() ||
 				`Приоритет "${priority}" выбран по характеру проблемы и потенциальному влиянию на жителей.`,
 			statusReason: "После автоматического анализа обращение отправлено на модерацию для проверки администратором.",
 			raw: {
+				validity: validity.raw,
 				vision: vision.raw,
 				classification: classificationRaw,
 			},

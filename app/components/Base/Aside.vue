@@ -153,6 +153,12 @@ const navs = computed(() => {
           path: "/panel/admin/staff",
           icon: "users-i",
         },
+        {
+          name: "Заявки на сотрудничество",
+          route: { path: "/panel/admin/employee-requests" },
+          path: "/panel/admin/employee-requests",
+          icon: "plus-i",
+        },
       ],
     });
   }
