@@ -11,11 +11,7 @@
     </div>
 
     <div class="faq-list__items">
-      <article
-        v-for="item in items"
-        :key="item.id"
-        class="faq-list__item"
-      >
+      <article v-for="item in items" :key="item.id" class="faq-list__item">
         <div class="faq-list__content">
           <p class="faq-list__question">{{ item.question }}</p>
           <p class="faq-list__meta">{{ item.category }} · {{ item.key }}</p>
@@ -24,7 +20,7 @@
         <div class="faq-list__actions">
           <UiButton
             label="Редактировать"
-            class="secondary-btn"
+            class="faq-list__btn secondary-btn"
             @action="emit('select', item)"
           />
         </div>
@@ -91,6 +87,9 @@ const emit = defineEmits(["select", "update:search"]);
   &__actions {
     display: flex;
     align-items: center;
+  }
+  &__btn {
+    height: fit-content;
   }
 }
 

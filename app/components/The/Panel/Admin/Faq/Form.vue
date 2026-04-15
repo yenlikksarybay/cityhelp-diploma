@@ -1,7 +1,9 @@
 <template>
   <section class="faq-form">
     <div class="faq-form__head">
-      <h3 class="title-sm">{{ isEditing ? "Редактировать FAQ" : "Новый FAQ" }}</h3>
+      <h3 class="title-sm">
+        {{ isEditing ? "Редактировать FAQ" : "Новый FAQ" }}
+      </h3>
       <UiButton
         v-if="isEditing"
         label="Сбросить"
@@ -49,6 +51,8 @@
       <UiButton
         label="Сохранить"
         class="primary-btn"
+        icon-color="white"
+        icon-size="size-24"
         before-icon="checkmark-i"
         @action="emit('save')"
       />

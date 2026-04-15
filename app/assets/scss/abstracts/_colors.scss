@@ -25,38 +25,42 @@ $black: #000000;
 
 //Blue
 $blue-500: #0646FF;
+$blue-100: #DBEAFE;
+$blue-700: #1D4ED8;
 
 // Orange
 $orange-500: #E84E10;
+$orange-600: #BC6C25;
 
 // Red
+$red-100: #FEE2E2;
 $red-300: #FF5757;
+$red-500: #B23A48;
+$red-700: #B91C1C;
 
 // Green
+$green-100: #DCFCE7;
 $green-500: #22C55E;
 $green-400: #4DB988;
+$green-600: #3A7D44;
+$green-700: #15803D;
 
 // Yellow
+$yellow-100: #FDE68A;
 $yellow-400: #FFCC00;
+$yellow-700: #92400E;
 
-// HTTP methods
-$http-get-color: #3A7D44;
-$http-post-color: #606C38;
-$http-patch-color: #BC6C25;
-$http-delete-color: #B23A48;
+// Violet
+$violet-100: #EDE9FE;
+$violet-700: #6D28D9;
 
-// Appeal statuses
-$status-new-bg: #dbeafe;
-$status-new-color: #1d4ed8;
-$status-moderation-bg: #ede9fe;
-$status-moderation-color: #6d28d9;
-$status-processing-bg: #fef3c7;
-$status-processing-color: #b45309;
-$status-needs-revision-bg: #fde68a;
-$status-needs-revision-color: #92400e;
-$status-completed-bg: #dcfce7;
-$status-completed-color: #15803d;
-$status-rated-bg: #ecfccb;
-$status-rated-color: #4d7c0f;
-$status-rejected-bg: #fee2e2;
-$status-rejected-color: #b91c1c;
+// Amber
+$amber-100: #FEF3C7;
+$amber-700: #B45309;
+
+// Lime
+$lime-100: #ECFCCB;
+$lime-700: #4D7C0F;
+
+// Olive
+$olive-500: #606C38;

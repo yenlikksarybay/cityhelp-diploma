@@ -568,16 +568,16 @@ const formatDateTime = (value) => {
     color: $surface-600;
   }
   &__confidence--high {
-    background-color: $status-completed-bg;
-    color: $status-completed-color;
+    background-color: $green-100;
+    color: $green-700;
   }
   &__confidence--medium {
-    background-color: $status-processing-bg;
-    color: $status-processing-color;
+    background-color: $amber-100;
+    color: $amber-700;
   }
   &__confidence--low {
-    background-color: $status-rejected-bg;
-    color: $status-rejected-color;
+    background-color: $red-100;
+    color: $red-700;
   }
   &__reason {
     display: flex;

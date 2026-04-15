@@ -3,7 +3,7 @@
     <div class="faq__wrapper">
       <div class="faq__head">
         <div>
-          <h2 class="title-md">FAQ</h2>
+          <!-- <h2 class="title-md">FAQ</h2> -->
           <p class="faq__sub">
             Ответы на частые вопросы по обращениями, статусам и оценке
           </p>

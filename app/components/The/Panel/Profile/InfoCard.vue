@@ -4,7 +4,8 @@
       <div>
         <h3 class="info-card__title">Основные данные</h3>
         <p class="info-card__subtitle">
-          Можно менять только имя и фамилию. Телефон и email остаются только для чтения.
+          Можно менять только имя и фамилию. Телефон и email остаются только для
+          чтения.
         </p>
       </div>
       <UiIcon icon="user-i" size="size-24" color="#606C38" />
@@ -23,24 +24,17 @@
         v-model="lastName"
         placeholder="Введите фамилию"
       />
-      <UiInput
-        label="Телефон"
-        name="phone"
-        v-model="phone"
-        disabled
-      />
-      <UiInput
-        label="E-mail"
-        name="email"
-        v-model="email"
-        disabled
-      />
+      <UiInput label="Телефон" name="phone" v-model="phone" disabled />
+      <UiInput label="E-mail" name="email" v-model="email" disabled />
     </div>
 
     <div class="info-card__actions">
       <UiButton
         class="primary-btn info-card__btn"
         label="Сохранить изменения"
+        icon-color="white"
+        icon-size="size-24"
+        before-icon="checkmark-i"
         :disabled="isSaving"
         @action="emit('save')"
       />
@@ -69,12 +63,14 @@ const emit = defineEmits(["update:modelValue", "save"]);
 
 const firstName = computed({
   get: () => props.modelValue?.firstName || "",
-  set: (value) => emit("update:modelValue", { ...props.modelValue, firstName: value }),
+  set: (value) =>
+    emit("update:modelValue", { ...props.modelValue, firstName: value }),
 });
 
 const lastName = computed({
   get: () => props.modelValue?.lastName || "",
-  set: (value) => emit("update:modelValue", { ...props.modelValue, lastName: value }),
+  set: (value) =>
+    emit("update:modelValue", { ...props.modelValue, lastName: value }),
 });
 
 const phone = computed(() => props.modelValue?.phone || "");

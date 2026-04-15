@@ -316,19 +316,19 @@ const accessMeta = API_ACCESS_META;
     color: $white;
 
     &.is-get {
-      background: $http-get-color;
+      background: $green-600;
     }
 
     &.is-post {
-      background: $http-post-color;
+      background: $olive-500;
     }
 
     &.is-patch {
-      background: $http-patch-color;
+      background: $orange-600;
     }
 
     &.is-delete {
-      background: $http-delete-color;
+      background: $red-500;
     }
   }
 

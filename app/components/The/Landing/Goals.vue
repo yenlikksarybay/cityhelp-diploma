@@ -33,7 +33,7 @@
             </p>
             <div class="goals__metrics">
               <div class="goals__metric">
-                <span class="goals__metric-value">1</span>
+                <span class="goals__metric-value">{{ totalPoints }}</span>
                 <span class="goals__metric-text"
                   >обращение = точка на карте</span
                 >
@@ -45,6 +45,23 @@
               <div class="goals__metric">
                 <span class="goals__metric-value">AI</span>
                 <span class="goals__metric-text">умная приоритизация</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="goals__card goals__card--heatmap" data-aos="fade-up">
+            <div class="goals__map-shell">
+              <UiHeatmap
+                v-if="heatmapPoints.length"
+                class="goals__heatmap"
+                :points="heatmapPoints"
+                :zoom="12"
+              />
+              <div
+                v-else
+                class="goals__media goals__media--heatmap goals__media--empty"
+              >
+                <span>Карта обращений загружается</span>
               </div>
             </div>
           </div>
@@ -114,7 +131,61 @@
   </section>
 </template>
 
-<script setup></script>
+<script setup>
+const normalizePoint = (point) => {
+  const x = Number(point?.[0]);
+  const y = Number(point?.[1]);
+
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return null;
+  }
+
+  return [x, y];
+};
+
+const normalizeLandingPayload = (response) => {
+  const payload = response?.data || response || [];
+  const meta = response?.meta || {};
+
+  return {
+    points: Array.isArray(payload)
+      ? payload.map(normalizePoint).filter(Boolean)
+      : [],
+    totalPoints: Number(meta.total || 0),
+    totalAppeals: Number(meta.totalAppeals || 0),
+    activeAppeals: Number(meta.activeAppeals || 0),
+  };
+};
+
+const initialHeatmapResponse = await useFetchSsr({
+  url: "/landing/heatmap",
+  method: "get",
+});
+
+const landingHeatmap = ref(normalizeLandingPayload(initialHeatmapResponse));
+
+const heatmapPoints = computed(() => landingHeatmap.value.points);
+const totalPoints = computed(() => landingHeatmap.value.totalPoints);
+const totalAppeals = computed(() => landingHeatmap.value.totalAppeals);
+const activeAppeals = computed(() => landingHeatmap.value.activeAppeals);
+
+const api = useApi();
+
+const loadLandingHeatmap = async () => {
+  try {
+    const response = await api.client({
+      url: "/landing/heatmap",
+      method: "get",
+    });
+
+    landingHeatmap.value = normalizeLandingPayload(response);
+  } catch {
+    // Keep SSR data if client refresh fails.
+  }
+};
+
+onMounted(loadLandingHeatmap);
+</script>
 
 <style lang="scss" scoped>
 .goals {
@@ -179,6 +250,51 @@
     background: $white;
   }
 
+  &__card--heatmap {
+    grid-column: span 12;
+  }
+
+  &__heatmap-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  &__heatmap-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    gap: 12px;
+    width: min(100%, 440px);
+  }
+
+  &__heatmap-stat {
+    display: grid;
+    gap: 4px;
+    padding: 14px;
+    border-radius: 18px;
+    background: rgba(96, 108, 56, 0.08);
+    border: 1px solid rgba(40, 54, 24, 0.12);
+  }
+
+  &__heatmap-stat-value {
+    font-size: 24px;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  &__heatmap-stat-label {
+    font-size: 13px;
+    line-height: 140%;
+    color: rgba(40, 54, 24, 0.7);
+  }
+
+  &__map-shell {
+    min-height: 360px;
+    border-radius: $border-r-md;
+    overflow: hidden;
+  }
+
   &__side {
     grid-column: span 5;
     display: grid;
@@ -214,6 +330,28 @@
 
   &__media--square {
     aspect-ratio: 1 / 1;
+  }
+
+  &__media--heatmap {
+    min-height: 360px;
+  }
+
+  &__media--empty {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    text-align: center;
+    color: rgba(40, 54, 24, 0.72);
+    font-weight: 600;
+  }
+
+  &__heatmap {
+    :deep(.heatmap__wrapper) {
+      height: 100%;
+      min-height: 360px;
+      border-radius: 0;
+      box-shadow: none;
+    }
   }
 
   &__metrics {
@@ -298,6 +436,7 @@
 
     &__card,
     &__card--wide,
+    &__card--heatmap,
     &__card--tall,
     &__card--media {
       grid-column: span 6;
@@ -305,6 +444,14 @@
 
     &__side {
       grid-column: span 6;
+    }
+
+    &__heatmap-head {
+      flex-direction: column;
+    }
+
+    &__heatmap-stats {
+      width: 100%;
     }
   }
 
@@ -335,6 +482,7 @@
 
     &__card,
     &__card--wide,
+    &__card--heatmap,
     &__card--tall,
     &__card--media {
       grid-column: span 1;
@@ -345,6 +493,10 @@
     }
 
     &__metrics {
+      grid-template-columns: 1fr;
+    }
+
+    &__heatmap-stats {
       grid-template-columns: 1fr;
     }
   }

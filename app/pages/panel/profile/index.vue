@@ -38,14 +38,13 @@
         :avatar-name="avatarName"
         :is-uploading="isAvatarSaving"
         :is-deleting="isAvatarDeleting"
-        @save="saveAvatar"
         @delete="deleteAvatar"
         @invalid-file="onInvalidFile"
       />
 
       <ThePanelProfileInfoCard
         v-model="profileForm"
-        :is-saving="isProfileSaving"
+        :is-saving="isProfileSaving || isAvatarSaving"
         @save="saveProfile"
       />
     </div>
@@ -165,7 +164,9 @@ const closeEmployeeModal = () => {
 };
 
 const saveProfile = async () => {
-  if (isProfileSaving.value) return;
+  if (isProfileSaving.value || isAvatarSaving.value) return;
+
+  const hasAvatarToUpload = Boolean(avatarFile.value);
 
   try {
     isProfileSaving.value = true;
@@ -178,12 +179,31 @@ const saveProfile = async () => {
       },
     });
 
-    fillProfile(response?.data || response || {});
+    let nextProfile = response?.data || response || {};
+
+    if (hasAvatarToUpload) {
+      isAvatarSaving.value = true;
+      const formData = new FormData();
+      formData.append("file", avatarFile.value);
+
+      const avatarResponse = await api.client({
+        url: "/profile/avatar",
+        method: "post",
+        body: formData,
+      });
+
+      avatarFile.value = null;
+      nextProfile = avatarResponse?.data || avatarResponse || nextProfile;
+    }
+
+    fillProfile(nextProfile);
     await authStore.setUser();
 
     useNotify({
       title: "Профиль обновлён",
-      text: "Имя и фамилия успешно сохранены.",
+      text: hasAvatarToUpload
+        ? "Данные профиля и аватар успешно сохранены."
+        : "Имя и фамилия успешно сохранены.",
       status: "success",
     });
   } catch (error) {
@@ -194,39 +214,6 @@ const saveProfile = async () => {
     });
   } finally {
     isProfileSaving.value = false;
-  }
-};
-
-const saveAvatar = async () => {
-  if (!avatarFile.value || isAvatarSaving.value) return;
-
-  try {
-    isAvatarSaving.value = true;
-    const formData = new FormData();
-    formData.append("file", avatarFile.value);
-
-    const response = await api.client({
-      url: "/profile/avatar",
-      method: "post",
-      body: formData,
-    });
-
-    avatarFile.value = null;
-    fillProfile(response?.data || response || {});
-    await authStore.setUser();
-
-    useNotify({
-      title: "Аватар обновлён",
-      text: "Новая фотография профиля успешно сохранена.",
-      status: "success",
-    });
-  } catch (error) {
-    useNotify({
-      title: "Не удалось загрузить аватар",
-      text: error?.statusMessage || "Попробуйте другое изображение.",
-      status: "error",
-    });
-  } finally {
     isAvatarSaving.value = false;
   }
 };

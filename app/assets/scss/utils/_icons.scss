@@ -265,3 +265,8 @@ i.icon {
 	-webkit-mask-image: url("@/assets/icons/key-i.svg");
 	mask-image: url("@/assets/icons/key-i.svg");
 }
+.recycle-i{
+	@extend i, .icon;
+	-webkit-mask-image: url("@/assets/icons/recycle-i.svg");
+	mask-image: url("@/assets/icons/recycle-i.svg");
+}

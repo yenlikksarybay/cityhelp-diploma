@@ -47,37 +47,37 @@ const resolvedText = computed(() => {
   }
   &__text {
     &--new {
-      color: $status-new-color;
+      color: $blue-700;
     }
     &--moderation {
-      color: $status-moderation-color;
+      color: $violet-700;
     }
     &--processing {
-      color: $status-processing-color;
+      color: $amber-700;
     }
     &--needs-revision {
-      color: $status-needs-revision-color;
+      color: $yellow-700;
     }
     &--completed {
-      color: $status-completed-color;
+      color: $green-700;
     }
     &--rated {
-      color: $status-rated-color;
+      color: $lime-700;
     }
     &--rejected {
-      color: $status-rejected-color;
+      color: $red-700;
     }
     &--info {
-      color: $status-new-color;
+      color: $blue-700;
     }
     &--warning {
-      color: $status-processing-color;
+      color: $amber-700;
     }
     &--success {
-      color: $status-completed-color;
+      color: $green-700;
     }
     &--danger {
-      color: $status-rejected-color;
+      color: $red-700;
     }
   }
 }

@@ -82,48 +82,48 @@ const iconColorClass = computed(() => {
     justify-content: center;
     border-radius: $border-r-md;
     &--new {
-      background-color: $status-new-bg;
-      color: $status-new-color;
+      background-color: $blue-100;
+      color: $blue-700;
     }
     &--moderation {
-      background-color: $status-moderation-bg;
-      color: $status-moderation-color;
+      background-color: $violet-100;
+      color: $violet-700;
     }
     &--processing {
-      background-color: $status-processing-bg;
-      color: $status-processing-color;
+      background-color: $amber-100;
+      color: $amber-700;
     }
     &--needs-revision {
-      background-color: $status-needs-revision-bg;
-      color: $status-needs-revision-color;
+      background-color: $yellow-100;
+      color: $yellow-700;
     }
     &--completed {
-      background-color: $status-completed-bg;
-      color: $status-completed-color;
+      background-color: $green-100;
+      color: $green-700;
     }
     &--rated {
-      background-color: $status-rated-bg;
-      color: $status-rated-color;
+      background-color: $lime-100;
+      color: $lime-700;
     }
     &--rejected {
-      background-color: $status-rejected-bg;
-      color: $status-rejected-color;
+      background-color: $red-100;
+      color: $red-700;
     }
     &--info {
-      background-color: $status-new-bg;
-      color: $status-new-color;
+      background-color: $blue-100;
+      color: $blue-700;
     }
     &--warning {
-      background-color: $status-processing-bg;
-      color: $status-processing-color;
+      background-color: $amber-100;
+      color: $amber-700;
     }
     &--success {
-      background-color: $status-completed-bg;
-      color: $status-completed-color;
+      background-color: $green-100;
+      color: $green-700;
     }
     &--danger {
-      background-color: $status-rejected-bg;
-      color: $status-rejected-color;
+      background-color: $red-100;
+      color: $red-700;
     }
   }
   &__text {

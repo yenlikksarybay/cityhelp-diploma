@@ -38,6 +38,9 @@
       <UiButton
         class="primary-btn password-card__btn"
         label="Обновить пароль"
+        icon-color="white"
+        icon-size="size-24"
+        before-icon="recycle-i"
         :disabled="isSaving"
         @action="emit('save')"
       />

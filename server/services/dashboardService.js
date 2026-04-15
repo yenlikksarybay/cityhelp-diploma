@@ -96,6 +96,55 @@ export const dashboardService = {
 		return appeals.map((appeal) => [appeal.location.x, appeal.location.y]);
 	},
 
+	async getPublicLandingHeatmap() {
+		const match = {
+			status: { $nin: HIDDEN_STATUSES },
+		};
+
+		const [appealsWithLocation, statusCounts] = await Promise.all([
+			AppealModel.find({
+				...match,
+				"location.x": { $type: "number" },
+				"location.y": { $type: "number" },
+			})
+				.select("location")
+				.lean(),
+			AppealModel.aggregate([
+				{ $match: match },
+				{
+					$group: {
+						_id: "$status",
+						total: { $sum: 1 },
+					},
+				},
+			]),
+		]);
+
+		const counts = Object.fromEntries(
+			statusCounts.map((item) => [item._id || "unknown", item.total]),
+		);
+
+		const totalAppeals = Object.values(counts).reduce(
+			(sum, value) => sum + Number(value || 0),
+			0,
+		);
+
+		return {
+			points: appealsWithLocation.map((appeal) => [
+				appeal.location.x,
+				appeal.location.y,
+			]),
+			totalAppeals,
+			totalPoints: appealsWithLocation.length,
+			activeAppeals: ACTIVE_STATUSES.reduce(
+				(sum, status) => sum + Number(counts[status] || 0),
+				0,
+			),
+			completedAppeals: Number(counts.completed || 0) + Number(counts.rated || 0),
+			rejectedAppeals: Number(counts.rejected || 0),
+		};
+	},
+
 	async getAppeals(user, limit = 9) {
 		const scope = buildScopeFilter(user);
 		const appeals = await AppealModel.find({

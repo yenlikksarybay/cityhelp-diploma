@@ -27,15 +27,10 @@
         <span class="avatar-card__meta-label">Форматы:</span>
         <span class="avatar-card__meta-value">JPG, PNG, WEBP до 4.5 MB</span>
       </p>
-    </div>
-
-    <div class="avatar-card__actions">
-      <UiButton
-        class="primary-btn avatar-card__btn"
-        label="Сохранить аватар"
-        :disabled="!selectedFile || isUploading || isDeleting"
-        @action="emit('save')"
-      />
+      <p v-if="selectedFile?.name" class="avatar-card__meta-item">
+        <span class="avatar-card__meta-label">Новый файл:</span>
+        <span class="avatar-card__meta-value">{{ selectedFile.name }}</span>
+      </p>
     </div>
   </section>
 </template>
@@ -66,7 +61,6 @@ const props = defineProps({
 
 const emit = defineEmits([
   "update:modelValue",
-  "save",
   "delete",
   "invalid-file",
 ]);
@@ -128,31 +122,11 @@ const selectedFile = computed({
   &__meta-value {
     font-weight: 600;
   }
-
-  &__actions {
-    display: flex;
-    gap: $gap-md;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-  }
-
-  &__btn {
-    min-width: 180px;
-  }
 }
 
 @media (max-width: 768px) {
   .avatar-card {
     padding: $padding-lg;
-
-    &__actions {
-      flex-direction: column;
-    }
-
-    &__btn {
-      width: 100%;
-      min-width: 0;
-    }
   }
 }
 </style>
