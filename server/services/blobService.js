@@ -4,6 +4,12 @@ import { buildBlobPath } from "../utils/blobPath.js";
 
 const MAX_FILE_SIZE = 4.5 * 1024 * 1024;
 
+const getBlobToken = () => {
+	return (
+		process.env.BLOB_READ_WRITE_TOKEN
+	);
+};
+
 const getBlobRootFolder = () => {
 	return process.env.BLOB_APPEALS_ROOT_FOLDER || process.env.BLOB_UPLOAD_FOLDER || "cityhelp/appeals";
 };
@@ -37,24 +43,56 @@ export const blobService = {
 			);
 		}
 
+		const blobToken = getBlobToken();
+		if (!blobToken) {
+			return createErrorResponse(
+				500,
+				"BLOB token не задан. Установите переменную окружения BLOB_READ_WRITE_TOKEN или BLOB_TOKEN."
+			);
+		}
+
 		const folder = resolveUploadFolder(options.folder);
 		const pathname = buildBlobPath(file.name, folder);
 		const arrayBuffer = await file.arrayBuffer();
 
-		return await put(pathname, arrayBuffer, {
-			access: "public",
-			contentType: file.type,
-			addRandomSuffix: false,
-		});
+		try {
+			return await put(pathname, arrayBuffer, {
+				access: "public",
+				contentType: file.type,
+				addRandomSuffix: false,
+				token: blobToken,
+			});
+		} catch (error) {
+			return createErrorResponse(
+				500,
+				`Ошибка загрузки в Blob: ${error?.message || "неопределённая ошибка"}`
+			);
+		}
 	},
 
 	async getFiles(prefix = null) {
+		const blobToken = getBlobToken();
+		if (!blobToken) {
+			return createErrorResponse(
+				500,
+				"BLOB token не задан. Установите переменную окружения BLOB_READ_WRITE_TOKEN или BLOB_TOKEN."
+			);
+		}
+
 		const resolvedPrefix = normalizeFolder(prefix) || normalizeFolder(getBlobRootFolder());
 
-		return await list({
-			prefix: `${resolvedPrefix}/`,
-			mode: "expanded",
-		});
+		try {
+			return await list({
+				prefix: `${resolvedPrefix}/`,
+				mode: "expanded",
+				token: blobToken,
+			});
+		} catch (error) {
+			return createErrorResponse(
+				500,
+				`Ошибка получения списка Blob: ${error?.message || "неопределённая ошибка"}`
+			);
+		}
 	},
 
 	async deleteFile(url) {
@@ -62,10 +100,24 @@ export const blobService = {
 			return createErrorResponse(400, "Нужен параметр url");
 		}
 
-		await del(url);
+		const blobToken = getBlobToken();
+		if (!blobToken) {
+			return createErrorResponse(
+				500,
+				"BLOB token не задан. Установите переменную окружения BLOB_READ_WRITE_TOKEN или BLOB_TOKEN."
+			);
+		}
 
-		return {
-			url,
-		};
+		try {
+			await del(url, { token: blobToken });
+			return {
+				url,
+			};
+		} catch (error) {
+			return createErrorResponse(
+				500,
+				`Ошибка удаления Blob: ${error?.message || "неопределённая ошибка"}`
+			);
+		}
 	},
 };
