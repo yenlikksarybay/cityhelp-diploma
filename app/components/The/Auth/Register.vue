@@ -41,7 +41,7 @@
         @keyup.enter="checkRegister"
       />
       <UiInput
-        label="Подвервите пароль*"
+        label="Подтвердите пароль*"
         type="password"
         name="confirmPassword"
         v-model="form.confirmPassword"

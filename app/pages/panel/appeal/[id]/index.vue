@@ -50,8 +50,20 @@
           <ThePanelAppealRatingForm
             :show="showRatingForm"
             :is-submitting="isRatingSubmitting"
-            @submit="submitRating"
+            @submit="openRatingModal"
           />
+
+          <UiModal
+            :is-open="isOpenRatingModal"
+            title="Оцените работу"
+            max-width="400px"
+            @close="closeRatingModal"
+          >
+            <ModalsEvaluationAppeal
+              @like="submitRating({ type: 'like' })"
+              @dislike="submitRating({ type: 'dislike' })"
+            />
+          </UiModal>
         </div>
 
         <div
@@ -60,12 +72,12 @@
         >
           <div class="appeal__aside-inner">
             <ThePanelAppealAsideInfo :appeal="appeal" />
-          <UiButton
-            v-if="canEditData"
-            class="appeal__aside-btn secondary-btn"
-            label="Изменить данные"
-            @action="openEditDataModal"
-          />
+            <UiButton
+              v-if="canEditData"
+              class="appeal__aside-btn secondary-btn"
+              label="Изменить данные"
+              @action="openEditDataModal"
+            />
             <ThePanelAppealRoadmap :roadmap="appeal?.roadmap || []" />
           </div>
         </div>
@@ -151,6 +163,7 @@ const isOpenDeleteModal = ref(false);
 const isOpenAssignModal = ref(false);
 const isOpenAiRecheckModal = ref(false);
 const isOpenActionsModal = ref(false);
+const isOpenRatingModal = ref(false);
 const isEmployeeSubmitting = ref(false);
 const isEditDataSubmitting = ref(false);
 const isWorkSubmitting = ref(false);
@@ -180,7 +193,9 @@ const currentAssignedEmployeeId = computed(() =>
   ),
 );
 
-const hasAssignedEmployee = computed(() => Boolean(currentAssignedEmployeeId.value));
+const hasAssignedEmployee = computed(() =>
+  Boolean(currentAssignedEmployeeId.value),
+);
 
 const isOwner = computed(
   () =>
@@ -258,7 +273,7 @@ const showRatingForm = computed(
     isOwner.value &&
     (appeal.value?.status === "completed" ||
       appeal.value?.status === "rated") &&
-    !appeal.value?.rating?.score,
+    !appeal.value?.rating?.type,
 );
 
 const normalizeAppeal = (item) => ({
@@ -379,7 +394,9 @@ const loadCategories = async () => {
     method: "get",
   });
 
-  categoryOptions.value = (response?.data || response || []).map(normalizeCategory);
+  categoryOptions.value = (response?.data || response || []).map(
+    normalizeCategory,
+  );
 };
 
 const initialAppeal = await useFetchSsr({
@@ -441,6 +458,14 @@ const openActionsModal = () => {
 
 const closeActionsModal = () => {
   isOpenActionsModal.value = false;
+};
+
+const openRatingModal = () => {
+  isOpenRatingModal.value = true;
+};
+
+const closeRatingModal = () => {
+  isOpenRatingModal.value = false;
 };
 
 const onCancel = () => {
@@ -525,7 +550,13 @@ const closeAiRecheckModal = () => {
   isOpenAiRecheckModal.value = false;
 };
 
-const saveEditData = async ({ employeeId, category, subCategory, priority, deadlineAt }) => {
+const saveEditData = async ({
+  employeeId,
+  category,
+  subCategory,
+  priority,
+  deadlineAt,
+}) => {
   if (isEditDataSubmitting.value) return;
 
   isEditDataSubmitting.value = true;
@@ -676,7 +707,7 @@ const submitReview = async ({ isOk, note }) => {
   }
 };
 
-const submitRating = async ({ score, comment }) => {
+const submitRating = async ({ type }) => {
   if (isRatingSubmitting.value) return;
 
   isRatingSubmitting.value = true;
@@ -686,8 +717,7 @@ const submitRating = async ({ score, comment }) => {
       url: `/appeals/${route.params.id}/rate`,
       method: "post",
       body: {
-        score,
-        comment,
+        type,
       },
     });
 
@@ -697,6 +727,7 @@ const submitRating = async ({ score, comment }) => {
       status: "success",
     });
 
+    closeRatingModal();
     await loadAppeal();
   } catch (error) {
     useNotify({

@@ -23,15 +23,15 @@ const resolveUploadFolder = (folder) => {
 export const blobService = {
 	async uploadImage(file, options = {}) {
 		if (!file) {
-			createErrorResponse(400, "Файл не передан");
+			return createErrorResponse(400, "Файл не передан");
 		}
 
 		if (!file.type?.startsWith("image/")) {
-			createErrorResponse(400, "Можно загружать только изображения");
+			return createErrorResponse(400, "Можно загружать только изображения");
 		}
 
 		if (file.size > MAX_FILE_SIZE) {
-			createErrorResponse(
+			return createErrorResponse(
 				400,
 				"Файл слишком большой. Для server upload используйте файлы до 4.5 MB"
 			);
@@ -59,7 +59,7 @@ export const blobService = {
 
 	async deleteFile(url) {
 		if (!url) {
-			createErrorResponse(400, "Нужен параметр url");
+			return createErrorResponse(400, "Нужен параметр url");
 		}
 
 		await del(url);

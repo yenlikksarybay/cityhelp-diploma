@@ -24,8 +24,7 @@ const locationSchema = new mongoose.Schema(
 
 const ratingSchema = new mongoose.Schema(
 	{
-		score: { type: Number, default: null },
-		comment: { type: String, default: "" },
+		type: { type: String, enum: ["like", "dislike"], default: null },
 		createdAt: { type: Date, default: null },
 	},
 	{ _id: false },
@@ -142,3 +141,95 @@ const appealSchema = new mongoose.Schema(
 );
 
 export const AppealModel = mongoose.models.Appeal || mongoose.model("Appeal", appealSchema);
+
+// Статические методы для работы с рейтингом
+AppealModel.getOverallRatingStats = async function () {
+	const result = await this.aggregate([
+		{
+			$match: {
+				"rating.type": { $ne: null },
+			},
+		},
+		{
+			$group: {
+				_id: null,
+				totalRatings: { $sum: 1 },
+				likes: {
+					$sum: {
+						$cond: [{ $eq: ["$rating.type", "like"] }, 1, 0],
+					},
+				},
+				dislikes: {
+					$sum: {
+						$cond: [{ $eq: ["$rating.type", "dislike"] }, 1, 0],
+					},
+				},
+			},
+		},
+		{
+			$project: {
+				totalRatings: 1,
+				likes: 1,
+				dislikes: 1,
+				positivePercentage: {
+					$multiply: [
+						{ $divide: ["$likes", "$totalRatings"] },
+						100,
+					],
+				},
+			},
+		},
+	]);
+
+	return result[0] || { totalRatings: 0, likes: 0, dislikes: 0, positivePercentage: 0 };
+};
+
+AppealModel.getEmployeeRatingStats = async function (employeeId) {
+	const result = await this.aggregate([
+		{
+			$match: {
+				assignedEmployee: employeeId,
+				"rating.type": { $ne: null },
+			},
+		},
+		{
+			$group: {
+				_id: null,
+				totalRatings: { $sum: 1 },
+				likes: {
+					$sum: {
+						$cond: [{ $eq: ["$rating.type", "like"] }, 1, 0],
+					},
+				},
+				dislikes: {
+					$sum: {
+						$cond: [{ $eq: ["$rating.type", "dislike"] }, 1, 0],
+					},
+				},
+			},
+		},
+		{
+			$project: {
+				totalRatings: 1,
+				likes: 1,
+				dislikes: 1,
+				positivePercentage: {
+					$cond: [
+						{ $gt: ["$totalRatings", 0] },
+						{ $multiply: [{ $divide: ["$likes", "$totalRatings"] }, 100] },
+						0,
+					],
+				},
+				ratingScore: {
+					$cond: [
+						{ $gt: ["$totalRatings", 0] },
+						{ $subtract: ["$likes", "$dislikes"] },
+						0,
+					],
+				},
+			},
+		},
+	]);
+
+	return result[0] || { totalRatings: 0, likes: 0, dislikes: 0, positivePercentage: 0, ratingScore: 0 };
+};

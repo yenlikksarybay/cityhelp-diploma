@@ -50,41 +50,41 @@ export default defineEventHandler(async (event) => {
 	const employeeIds = users.map((user) => user._id);
 	const employeeAppealStats = role === "employee" && employeeIds.length
 		? await AppealModel.aggregate([
-				{ $match: { assignedEmployee: { $in: employeeIds } } },
-				{
-					$group: {
-						_id: "$assignedEmployee",
-						user_appeals_count: { $sum: 1 },
-						positive_rating_count: {
-							$sum: {
-								$cond: [
-									{ $and: [{ $gte: ["$rating.score", 4] }, { $ne: ["$rating.score", null] }] },
-									1,
-									0,
-								],
-							},
+			{ $match: { assignedEmployee: { $in: employeeIds } } },
+			{
+				$group: {
+					_id: "$assignedEmployee",
+					user_appeals_count: { $sum: 1 },
+					positive_rating_count: {
+						$sum: {
+							$cond: [
+								{ $and: [{ $eq: ["$rating.type", "like"] }, { $ne: ["$rating.type", null] }] },
+								1,
+								0,
+							],
 						},
-						negative_rating_count: {
-							$sum: {
-								$cond: [
-									{ $and: [{ $lte: ["$rating.score", 2] }, { $ne: ["$rating.score", null] }] },
-									1,
-									0,
-								],
-							},
+					},
+					negative_rating_count: {
+						$sum: {
+							$cond: [
+								{ $and: [{ $eq: ["$rating.type", "dislike"] }, { $ne: ["$rating.type", null] }] },
+								1,
+								0,
+							],
 						},
-						average_rating: {
-							$avg: {
-								$cond: [
-									{ $ne: ["$rating.score", null] },
-									"$rating.score",
-									null,
-								],
-							},
+					},
+					average_rating: {
+						$sum: {
+							$cond: [
+								{ $and: [{ $eq: ["$rating.type", "like"] }, { $ne: ["$rating.type", null] }] },
+								1,
+								{ $cond: [{ $ne: ["$rating.type", null] }, -1, 0] },
+							],
 						},
 					},
 				},
-			])
+			},
+		])
 		: [];
 
 	const statsMap = new Map(

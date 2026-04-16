@@ -15,8 +15,7 @@ Example flow:
 1) `server/api/test.get.js`
 2) `server/controllers/testController.js`
 3) `server/services/testService.js` 
-4) `server/repositories/testRepository.js` 
-5) `server/models/Test.js`
+4) `server/models/Test.js`
 
 Blob test API:
 - `POST /api/blob/upload` - upload one image with `multipart/form-data`, field name `file`, optional `folder` field for the blob path prefix

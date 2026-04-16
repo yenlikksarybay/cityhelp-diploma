@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
 
 	const isOk = Boolean(body?.isOk);
 	const note = String(body?.note || "").trim();
-	const nextStatus = isOk ? "new" : "rejected";
+	const nextStatus = isOk ? "completed" : "rejected";
 	const originalDecision = createDecisionSnapshot(appeal);
 
 	if (isOk && !appeal.assignedEmployee) {

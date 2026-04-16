@@ -57,10 +57,14 @@ const normalizeItem = (item, key) => ({
 
 const normalizedItems = computed(() => {
   if (Array.isArray(props.items)) {
-    return props.items.map((item, index) => normalizeItem(item, item?.id ?? index));
+    return props.items.map((item, index) =>
+      normalizeItem(item, item?.id ?? index),
+    );
   }
 
-  return Object.entries(props.items || {}).map(([key, item]) => normalizeItem(item, key));
+  return Object.entries(props.items || {}).map(([key, item]) =>
+    normalizeItem(item, key),
+  );
 });
 
 const openId = ref(props.modelValue);
@@ -122,12 +126,13 @@ watch(
   }
 
   &__title {
+    font-size: 16px;
     font-weight: 700;
   }
 
   &__meta {
     color: $surface-400;
-    font-size: 13px;
+    font-size: 12px;
   }
 
   &__body {
@@ -137,12 +142,15 @@ watch(
   &__text {
     color: $surface-600;
     line-height: 160%;
+    font-size: 14px;
   }
 }
 
 .accordion-fade-enter-active,
 .accordion-fade-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .accordion-fade-enter-from,

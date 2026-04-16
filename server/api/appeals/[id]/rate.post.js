@@ -45,14 +45,13 @@ export default defineEventHandler(async (event) => {
 		});
 	}
 
-	const score = Number(body?.score);
-	if (!Number.isFinite(score) || score < 1 || score > 5) {
-		throw createError({ statusCode: 400, statusMessage: "Оценка должна быть от 1 до 5" });
+	const type = String(body?.type || "").trim();
+	if (!["like", "dislike"].includes(type)) {
+		throw createError({ statusCode: 400, statusMessage: "Тип оценки должен быть 'like' или 'dislike'" });
 	}
 
 	appeal.rating = {
-		score,
-		comment: String(body?.comment || ""),
+		type,
 		createdAt: new Date(),
 	};
 	appeal.status = "rated";
@@ -63,11 +62,11 @@ export default defineEventHandler(async (event) => {
 			role: user.role,
 			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Пользователь",
 			title: "Пользователь оценил обращение",
-			text: String(body?.comment || "").trim() || `Оценка: ${score}`,
+			text: type === "like" ? "Пользователь поставил лайк" : "Пользователь поставил дизлайк",
 			statusFrom: "completed",
 			statusTo: "rated",
 			meta: {
-				score,
+				type,
 			},
 		}),
 	];
