@@ -43,6 +43,9 @@
             :show="showAdminReviewForm"
             :is-submitting="isReviewSubmitting"
             :can-approve="hasAssignedEmployee"
+            :title="adminReviewTitle"
+            :approve-label="adminApproveLabel"
+            :reject-label="adminRejectLabel"
             missing-employee-message="Назначьте сотрудника через «Изменить данные», чтобы подтвердить модерацию."
             @review="submitReview"
           />
@@ -268,9 +271,34 @@ const showAdminReviewForm = computed(
     appeal.value?.status === "moderation",
 );
 
+const hasEmployeeResult = computed(() =>
+  Boolean(
+    appeal.value?.employeeNote ||
+    (Array.isArray(appeal.value?.fixedImages) &&
+      appeal.value.fixedImages.length > 0) ||
+    appeal.value?.fixedLocation,
+  ),
+);
+
+const isFinalReview = computed(
+  () => showAdminReviewForm.value && hasEmployeeResult.value,
+);
+
+const adminReviewTitle = computed(() =>
+  isFinalReview.value ? "Финальная проверка результата" : "Проверка модерации",
+);
+
+const adminApproveLabel = computed(() =>
+  isFinalReview.value ? "Подтвердить результат" : "Подтвердить модерацию",
+);
+
+const adminRejectLabel = computed(() =>
+  isFinalReview.value ? "Отправить на доработку" : "Отклонить обращение",
+);
+
 const showRatingForm = computed(
   () =>
-    isOwner.value &&
+    (isOwner.value || roleStore.isAdmin || roleStore.isSuperAdmin) &&
     (appeal.value?.status === "completed" ||
       appeal.value?.status === "rated") &&
     !appeal.value?.rating?.type,
@@ -676,9 +704,11 @@ const submitReview = async ({ isOk, note }) => {
 
   isReviewSubmitting.value = true;
 
+  const endpoint = isFinalReview.value ? "/final-check" : "/review";
+
   try {
     await api.client({
-      url: `/appeals/${route.params.id}/review`,
+      url: `/appeals/${route.params.id}${endpoint}`,
       method: "post",
       body: {
         isOk,
@@ -688,7 +718,11 @@ const submitReview = async ({ isOk, note }) => {
 
     useNotify({
       title: "Сохранено",
-      text: isOk ? "Обращение завершено" : "Обращение отправлено на доработку",
+      text: isOk
+        ? isFinalReview.value
+          ? "Обращение завершено"
+          : "Обращение передано сотруднику"
+        : "Обращение отправлено на доработку",
       status: "success",
     });
 

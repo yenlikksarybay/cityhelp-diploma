@@ -34,7 +34,11 @@ export default defineEventHandler(async (event) => {
 		throw createError({ statusCode: 404, statusMessage: "Обращение не найдено" });
 	}
 
-	if (String(appeal.user) !== String(user._id)) {
+	if (
+		String(appeal.user) !== String(user._id) &&
+		user.role !== "admin" &&
+		user.role !== "superadmin"
+	) {
 		throw createError({ statusCode: 403, statusMessage: "Доступ запрещён" });
 	}
 
@@ -52,6 +56,7 @@ export default defineEventHandler(async (event) => {
 
 	appeal.rating = {
 		type,
+		role: user.role,
 		createdAt: new Date(),
 	};
 	appeal.status = "rated";
@@ -61,12 +66,13 @@ export default defineEventHandler(async (event) => {
 			type: "user_rating",
 			role: user.role,
 			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Пользователь",
-			title: "Пользователь оценил обращение",
-			text: type === "like" ? "Пользователь поставил лайк" : "Пользователь поставил дизлайк",
+			title: user.role === "user" ? "Пользователь оценил обращение" : "Администратор оценил обращение",
+			text: type === "like" ? "Поставлен лайк" : "Поставлен дизлайк",
 			statusFrom: "completed",
 			statusTo: "rated",
 			meta: {
 				type,
+				ratedBy: user.role,
 			},
 		}),
 	];

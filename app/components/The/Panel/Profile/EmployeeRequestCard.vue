@@ -4,7 +4,8 @@
       <div>
         <h3 class="employee-request-card__title">Сотрудничество с CityHelp</h3>
         <p class="employee-request-card__subtitle">
-          Можно подать заявку на роль сотрудника. Решение принимает администратор или супер-администратор.
+          Можно подать заявку на роль сотрудника. Решение принимает
+          администратор.
         </p>
       </div>
       <UiIcon icon="users-i" size="size-24" color="#606C38" />
@@ -90,7 +91,10 @@ const statusDescription = computed(() => {
   }
 
   if (props.request?.status === "rejected") {
-    return props.request?.adminComment || "Вы можете отправить новую заявку повторно.";
+    return (
+      props.request?.adminComment ||
+      "Вы можете отправить новую заявку повторно."
+    );
   }
 
   if (props.request?.status === "approved") {
@@ -100,7 +104,9 @@ const statusDescription = computed(() => {
   return "После подтверждения заявка появится в отдельном списке у администрации.";
 });
 
-const showAction = computed(() => props.role === "user" && props.request?.status !== "pending");
+const showAction = computed(
+  () => props.role === "user" && props.request?.status !== "pending",
+);
 </script>
 
 <style lang="scss" scoped>

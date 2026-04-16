@@ -2,7 +2,6 @@
   <client-only>
     <section class="help-us" data-help-section>
       <div class="help-us__wrapper" data-aos="fade-up">
-        <p class="help-us__kicker">Начать сейчас</p>
         <h2 class="help-us__title">Сделайте ваш город лучше сегодня</h2>
         <p class="help-us__subtitle">
           Регистрация занимает 30 секунд. Первое обращение пройдет через AI и

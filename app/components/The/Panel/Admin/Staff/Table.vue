@@ -15,7 +15,7 @@
               {{ "E-mail" }}
             </th>
             <th class="table__cell table__cell--head">
-              {{ "Колл. обращений" }}
+              {{ "Количество обращений" }}
             </th>
             <th class="table__cell table__cell--head">
               {{ "Положительные" }}

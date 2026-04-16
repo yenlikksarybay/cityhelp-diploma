@@ -49,37 +49,58 @@ export default defineEventHandler(async (event) => {
 
 	const isOk = Boolean(body?.isOk);
 	const note = String(body?.note || "").trim();
-	const nextStatus = isOk ? "completed" : "rejected";
+	const hasEmployeeResult = Boolean(
+		appeal.employeeNote ||
+		Array.isArray(appeal.fixedImages) && appeal.fixedImages.length > 0 ||
+		appeal.fixedLocation,
+	);
 	const originalDecision = createDecisionSnapshot(appeal);
 
-	if (isOk && !appeal.assignedEmployee) {
-		throw createError({
-			statusCode: 400,
-			statusMessage: "Нельзя подтвердить модерацию без назначенного сотрудника",
-		});
+	let nextStatus;
+	let timelineType;
+	let timelineTitle;
+	let timelineText;
+	let decision;
+
+	if (hasEmployeeResult) {
+		// Вторая проверка после отправки результата сотрудником
+		nextStatus = isOk ? "completed" : "needs_revision";
+		timelineType = "admin_final_check";
+		timelineTitle = isOk ? "Финальная проверка пройдена" : "Отправлено на доработку";
+		timelineText = note || (isOk ? "Выполнение сотрудника подтверждено" : "Требуется доработка");
+		decision = isOk ? "approved" : "needs_revision";
+	} else {
+		// Первая проверка сразу после создания обращения
+		nextStatus = isOk ? "new" : "rejected";
+		timelineType = "admin_moderation";
+		timelineTitle = isOk ? "Обращение передано сотруднику" : "Обращение отклонено";
+		timelineText = note || (isOk ? "Обращение отправлено на исполнение" : "Обращение не прошло проверку");
+		decision = isOk ? "approved" : "rejected";
+
+		if (isOk && !appeal.assignedEmployee) {
+			throw createError({
+				statusCode: 400,
+				statusMessage: "Нельзя подтвердить модерацию без назначенного сотрудника",
+			});
+		}
 	}
 
-	if (isOk) {
-		appeal.status = nextStatus;
-		appeal.moderationNote = note;
-	} else {
-		appeal.status = nextStatus;
-		appeal.moderationNote = note || "Обращение отклонено модератором";
-	}
+	appeal.status = nextStatus;
+	appeal.moderationNote = note || "";
 
 	appeal.timeline = [
 		...(appeal.timeline || []),
 		createAppealTimelineEntry({
-			type: "admin_moderation",
+			type: timelineType,
 			role: user.role,
 			authorName: `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Администратор",
-			title: isOk ? "Модерация подтверждена" : "Обращение отклонено",
-			text: note || (isOk ? "AI-результат подтверждён" : "Обращение не прошло проверку"),
+			title: timelineTitle,
+			text: timelineText,
 			statusFrom: "moderation",
 			statusTo: nextStatus,
 			meta: {
 				note,
-				decision: isOk ? "approved" : "rejected",
+				decision,
 			},
 		}),
 	];
@@ -89,8 +110,8 @@ export default defineEventHandler(async (event) => {
 	await createAiTrainingCase({
 		appeal,
 		moderator: user,
-		source: "admin_moderation",
-		action: isOk ? "approved" : "rejected",
+		source: timelineType,
+		action: isOk ? "approved" : decision,
 		originalDecision,
 		finalDecision: createDecisionSnapshot(appeal),
 		correctedFields: ["status", ...(note ? ["moderationNote"] : [])],

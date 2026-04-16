@@ -25,6 +25,7 @@ const locationSchema = new mongoose.Schema(
 const ratingSchema = new mongoose.Schema(
 	{
 		type: { type: String, enum: ["like", "dislike"], default: null },
+		role: { type: String, default: null },
 		createdAt: { type: Date, default: null },
 	},
 	{ _id: false },
