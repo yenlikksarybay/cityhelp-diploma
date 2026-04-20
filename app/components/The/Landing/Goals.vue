@@ -16,10 +16,14 @@
 
         <div class="goals__grid">
           <div class="goals__card goals__card--media" data-aos="zoom-in">
-            <div
+            <video
               class="goals__media goals__media--square"
-              aria-hidden="true"
-            ></div>
+              src="/assets/videos/CityHelp-flow.mp4"
+              autoplay
+              muted
+              loop
+              playsinline
+            ></video>
             <p class="goals__text">
               Единое окно для обращений — без звонков и сложных форм.
             </p>
@@ -99,10 +103,11 @@
 
           <div class="goals__side" data-aos="fade-up">
             <div class="goals__card goals__card--media">
-              <div
+              <img
+                src="/assets/images/landing/admin-panel.jpeg"
                 class="goals__media goals__media--wide"
-                aria-hidden="true"
-              ></div>
+                alt="Admin Panel"
+              />
               <p class="goals__text">
                 Прозрачные статусы, понятные сроки и история всех действий.
               </p>
@@ -236,7 +241,7 @@ onMounted(loadLandingHeatmap);
   }
 
   &__card--wide {
-    grid-column: span 8;
+    grid-column: span 6;
   }
 
   &__card--tall {
@@ -245,7 +250,7 @@ onMounted(loadLandingHeatmap);
   }
 
   &__card--media {
-    grid-column: span 4;
+    grid-column: span 6;
     background: $white;
   }
 
@@ -328,7 +333,7 @@ onMounted(loadLandingHeatmap);
   }
 
   &__media--square {
-    aspect-ratio: 1 / 1;
+    border-radius: $border-r-md;
   }
 
   &__media--heatmap {
